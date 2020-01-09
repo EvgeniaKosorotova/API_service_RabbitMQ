@@ -12,7 +12,9 @@ namespace Send
         public static IConnection Connection { get; set; }
         public static ConnectionFactory Factory { get; set; }
 
-        public static int countChannels = 1;
+        //public static int countChannels = 1;
+
+        //public static bool isNewConnection = false;
 
         public static void CreateConnection()
         {
@@ -20,19 +22,27 @@ namespace Send
             { 
                 Factory = new ConnectionFactory() { HostName = "localhost" };
                 Factory.AutomaticRecoveryEnabled = true;
-                Timer timer = new Timer(CreateChannel, 0, 0, 20);
+                Connection = Factory.CreateConnection();
+                Channel = Connection.CreateModel();
+                Timer timer = new Timer(CreateChannel, 0, Convert.ToInt32(Channel.ContinuationTimeout.TotalMilliseconds), Convert.ToInt32(Channel.ContinuationTimeout.TotalMilliseconds));
             }
         }
 
         private static void CreateChannel(object status) 
         {
-            if (Connection == null || Connection.ChannelMax <= countChannels) 
-            {
-                Connection = Factory.CreateConnection();
-                countChannels = 1;
-            }
+            //if (!isNewConnection && Connection.ChannelMax <= countChannels) {
+            //    isNewConnection = true;
+            //    Connection.Close();
+            //}
+            //if (Connection == null || isNewConnection) 
+            //{
+            //    isNewConnection = false;
+            //    Connection = Factory.CreateConnection();
+            //    countChannels = 1;
+            //}
+            //countChannels += 1;
+            Channel.Close();
             Channel = Connection.CreateModel();
-            countChannels += 1;
         }
 
         public static int SendMessage(EndpointData endpointData)
