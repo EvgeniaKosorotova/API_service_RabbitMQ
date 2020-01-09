@@ -13,10 +13,9 @@ namespace Send.Controllers
         [HttpPost]
         public IActionResult Post([FromBody] object value)
         {
-            int statusCode = 501;
             EndpointData endpointData = JsonSerializer.Deserialize<EndpointData>(Convert.ToString(value));
             Send.CreateConnection();
-            statusCode = Send.SendMessage(endpointData);
+            int statusCode = Send.SendMessage(endpointData);
             return StatusCode(statusCode);
         }
     }
