@@ -1,39 +1,67 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using RabbitMQ.Client;
 using System.Text;
 using Send.Models;
+using System.Threading;
 
 namespace Send
 {
     class Send : ISending
     {
-        public IModel channel { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public static IModel Channel { get; set; }
+        public static IConnection Connection { get; set; }
+        public static ConnectionFactory Factory { get; set; }
 
-        public static void SendMessage(IModel channel, EndpointData endpoint)
+        public static int countChannels = 1;
+
+        public static void CreateConnection()
         {
-                channel.ExchangeDeclare(exchange: endpoint.NameExchange, type: ExchangeType.Fanout);
-
-                var message = endpoint.Message;
-                var body = Encoding.UTF8.GetBytes(Convert.ToString(message));
-
-                var properties = channel.CreateBasicProperties();
-                properties.Persistent = true;
-
-                channel.BasicPublish(exchange: endpoint.NameExchange,
-                                        routingKey: endpoint.RoutingKey,
-                                        basicProperties: properties,
-                                        body: body);
+            if (Factory == null) 
+            { 
+                Factory = new ConnectionFactory() { HostName = "localhost" };
+                Factory.AutomaticRecoveryEnabled = true;
+                Timer timer = new Timer(CreateChannel, 0, 0, 20);
+            }
         }
 
-        public static IModel ConnectionToChannel() 
+        private static void CreateChannel(object status) 
         {
-            var factory = new ConnectionFactory() { HostName = "localhost" };
-            using var connection = factory.CreateConnection();
-            using var channel = connection.CreateModel();
-            return channel;
+            if (Connection == null || Connection.ChannelMax <= countChannels) 
+            {
+                Connection = Factory.CreateConnection();
+                countChannels = 1;
+            }
+            Channel = Connection.CreateModel();
+            countChannels += 1;
+        }
+
+        public static int SendMessage(EndpointData endpointData)
+        {
+            if (endpointData.NameExchange != null && endpointData.RoutingKey != null)
+            {
+                try
+                {
+                    Channel.ExchangeDeclare(exchange: endpointData.NameExchange, type: ExchangeType.Fanout);
+
+                    var message = endpointData.Message;
+                    var body = Encoding.UTF8.GetBytes(Convert.ToString(message));
+
+                    Channel.BasicPublish(exchange: endpointData.NameExchange,
+                                            routingKey: endpointData.RoutingKey,
+                                            basicProperties: null,
+                                            body: body);
+                    return 200;
+                }
+                catch (Exception e)
+                {
+                    return 500;
+                }
+            }
+            else 
+            {
+                return 400;
+
+            }
         }
     }
 }

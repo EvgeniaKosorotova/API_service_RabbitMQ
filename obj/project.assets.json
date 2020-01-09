@@ -8558,11 +8558,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\WORK\\TestTask\\Send\\Send.csproj",
+      "projectUniqueName": "C:\\WORK\\TestTask\\Send\\API_service_rabbitMQ\\Send.csproj",
       "projectName": "Send",
-      "projectPath": "C:\\WORK\\TestTask\\Send\\Send.csproj",
+      "projectPath": "C:\\WORK\\TestTask\\Send\\API_service_rabbitMQ\\Send.csproj",
       "packagesPath": "C:\\Users\\evgeniya.kosorotova\\.nuget\\packages\\",
-      "outputPath": "C:\\WORK\\TestTask\\Send\\obj\\",
+      "outputPath": "C:\\WORK\\TestTask\\Send\\API_service_rabbitMQ\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Microsoft\\Xamarin\\NuGet\\",
