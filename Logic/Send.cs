@@ -12,10 +12,6 @@ namespace Send
         public static IConnection Connection { get; set; }
         public static ConnectionFactory Factory { get; set; }
 
-        //public static int countChannels = 1;
-
-        //public static bool isNewConnection = false;
-
         public static void CreateConnection()
         {
             if (Factory == null) 
@@ -30,17 +26,6 @@ namespace Send
 
         private static void CreateChannel(object status) 
         {
-            //if (!isNewConnection && Connection.ChannelMax <= countChannels) {
-            //    isNewConnection = true;
-            //    Connection.Close();
-            //}
-            //if (Connection == null || isNewConnection) 
-            //{
-            //    isNewConnection = false;
-            //    Connection = Factory.CreateConnection();
-            //    countChannels = 1;
-            //}
-            //countChannels += 1;
             Channel.Close();
             Channel = Connection.CreateModel();
         }
