@@ -1,17 +1,13 @@
-﻿using RabbitMQ.Client;
-using Send.Models;
+﻿using QueueMessageSender.Models;
 
 
-namespace Send
+namespace QueueMessageSender
 {
     /// <summary>
-    /// Abstaction to publish messages to the queue.
+    /// Abstraction to publish messages to the queue.
     /// </summary>
     interface IQueueMessageSender
     {
-        public const int ServerErrorResponse = 501;
-
-        static void CreateConnection() { }
-        static int SendMessage(EndpointData endpoint) { return ServerErrorResponse; }
+        void SendMessage(DepartureData data);
     }
 }

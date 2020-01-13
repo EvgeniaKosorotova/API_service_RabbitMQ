@@ -1,59 +1,49 @@
 ﻿using System;
 using RabbitMQ.Client;
 using System.Text;
-using Send.Models;
+using QueueMessageSender.Models;
 using System.Threading;
 
-namespace Send
+namespace QueueMessageSender
 {
     class RmqMessageSender : IQueueMessageSender
     {
-        public static IModel Channel { get; set; }
-        public static IConnection Connection { get; set; }
-        public static ConnectionFactory Factory { get; set; }
+        protected IModel channel;
+        protected IConnection connection;
+        protected ConnectionFactory factory;
 
-        public static void CreateConnection()
+        public void CreateConnection()
         {
-            if (Factory == null) 
-            { 
-                Factory = new ConnectionFactory() { HostName = "localhost" };
-                Factory.AutomaticRecoveryEnabled = true;
-                Connection = Factory.CreateConnection();
-                Channel = Connection.CreateModel();
-                Timer timer = new Timer(CreateChannel, 0, Convert.ToInt32(Channel.ContinuationTimeout.TotalMilliseconds), Convert.ToInt32(Channel.ContinuationTimeout.TotalMilliseconds));
-            }
-        }
-
-        private static void CreateChannel(object status) 
-        {
-            Channel.Close();
-            Channel = Connection.CreateModel();
-        }
-
-        public static int SendMessage(EndpointData endpointData)
-        {
-            if (endpointData.NameExchange != null && endpointData.RoutingKey != null)
+            if (factory == null) 
             {
-                throw new ArgumentNullException(nameof(endpointData.NameExchange));
+                factory = new ConnectionFactory() { HostName = "localhost" };
+                factory.AutomaticRecoveryEnabled = true;
+                connection = factory.CreateConnection();
+                channel = connection.CreateModel();
+                Timer timer = new Timer(CreateChannel, 0, Convert.ToInt32(channel.ContinuationTimeout.TotalMilliseconds), Convert.ToInt32(channel.ContinuationTimeout.TotalMilliseconds));
             }
+        }
 
+        private void CreateChannel(object status) 
+        {
+            channel.Close();
+            channel = connection.CreateModel();
+        }
+
+        public void SendMessage(DepartureData data)
+        {
             try
             {
-                Channel.ExchangeDeclare(exchange: endpointData.NameExchange, type: ExchangeType.Fanout);
+                channel.ExchangeDeclare(exchange: data.NameExchange, type: ExchangeType.Fanout);
 
-                var message = endpointData.Message;
-                var body = Encoding.UTF8.GetBytes(Convert.ToString(message));
+                var body = Encoding.UTF8.GetBytes((char[])data.Message);
 
-                Channel.BasicPublish(exchange: endpointData.NameExchange,
-                                        routingKey: endpointData.RoutingKey,
-                                        basicProperties: null,
-                                        body: body);
-                return 200;
+                channel.BasicPublish(exchange: data.NameExchange,
+                                     routingKey: data.RoutingKey,
+                                     basicProperties: null,
+                                     body: body);
             }
-            catch (Exception e)
-            {
-                return 500;
-            }
+            catch (Exception e){}
         }
     }
 }

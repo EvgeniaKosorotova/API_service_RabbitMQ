@@ -2,7 +2,7 @@
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
-namespace Send.Models
+namespace QueueMessageSender.Models
 {
     public class EndpointData
     {

@@ -1,9 +1,7 @@
-﻿using System;
-using System.Text.Json;
-using Microsoft.AspNetCore.Mvc;
-using Send.Models;
+﻿using Microsoft.AspNetCore.Mvc;
+using QueueMessageSender.Models;
 
-namespace Send.Controllers
+namespace QueueMessageSender.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -13,9 +11,16 @@ namespace Send.Controllers
         [HttpPost]
         public IActionResult Post(EndpointData model)
         {
-            RmqMessageSender.CreateConnection();
-            int statusCode = RmqMessageSender.SendMessage(model);
-            return StatusCode(statusCode);
+            var departureData = new DepartureData
+            {
+                NameExchange = model.NameExchange,
+                RoutingKey = model.RoutingKey,
+                Message = model.Message
+            };
+            var sender = new RmqMessageSender();
+            sender.CreateConnection();
+            sender.SendMessage(departureData);
+            return Ok();
         }
     }
 }
