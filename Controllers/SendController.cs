@@ -7,15 +7,14 @@ namespace Send.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class SendController : ControllerBase
+    public class MessagesController : ControllerBase
     {
         // POST: api/Send
         [HttpPost]
-        public IActionResult Post([FromBody] object value)
+        public IActionResult Post(EndpointData model)
         {
-            EndpointData endpointData = JsonSerializer.Deserialize<EndpointData>(Convert.ToString(value));
-            Send.CreateConnection();
-            int statusCode = Send.SendMessage(endpointData);
+            RmqMessageSender.CreateConnection();
+            int statusCode = RmqMessageSender.SendMessage(model);
             return StatusCode(statusCode);
         }
     }

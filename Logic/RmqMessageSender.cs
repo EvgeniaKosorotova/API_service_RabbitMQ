@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace Send
 {
-    class Send : ISending
+    class RmqMessageSender : IQueueMessageSender
     {
         public static IModel Channel { get; set; }
         public static IConnection Connection { get; set; }
@@ -34,28 +34,25 @@ namespace Send
         {
             if (endpointData.NameExchange != null && endpointData.RoutingKey != null)
             {
-                try
-                {
-                    Channel.ExchangeDeclare(exchange: endpointData.NameExchange, type: ExchangeType.Fanout);
-
-                    var message = endpointData.Message;
-                    var body = Encoding.UTF8.GetBytes(Convert.ToString(message));
-
-                    Channel.BasicPublish(exchange: endpointData.NameExchange,
-                                            routingKey: endpointData.RoutingKey,
-                                            basicProperties: null,
-                                            body: body);
-                    return 200;
-                }
-                catch (Exception e)
-                {
-                    return 500;
-                }
+                throw new ArgumentNullException(nameof(endpointData.NameExchange));
             }
-            else 
-            {
-                return 400;
 
+            try
+            {
+                Channel.ExchangeDeclare(exchange: endpointData.NameExchange, type: ExchangeType.Fanout);
+
+                var message = endpointData.Message;
+                var body = Encoding.UTF8.GetBytes(Convert.ToString(message));
+
+                Channel.BasicPublish(exchange: endpointData.NameExchange,
+                                        routingKey: endpointData.RoutingKey,
+                                        basicProperties: null,
+                                        body: body);
+                return 200;
+            }
+            catch (Exception e)
+            {
+                return 500;
             }
         }
     }
