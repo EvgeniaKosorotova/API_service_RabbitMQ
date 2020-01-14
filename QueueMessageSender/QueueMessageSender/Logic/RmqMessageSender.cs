@@ -1,10 +1,10 @@
-﻿using System;
+﻿using QueueMessageSender.Models;
 using RabbitMQ.Client;
+using System;
 using System.Text;
-using QueueMessageSender.Models;
 using System.Threading;
 
-namespace QueueMessageSender
+namespace QueueMessageSender.Logic
 {
     class RmqMessageSender : IQueueMessageSender
     {
@@ -12,9 +12,12 @@ namespace QueueMessageSender
         protected IConnection connection;
         protected ConnectionFactory factory;
 
+        /// <summary>
+        /// Class to publish messages to the queue RabbitMQ.
+        /// </summary>
         public void CreateConnection()
         {
-            if (factory == null) 
+            if (factory == null)
             {
                 factory = new ConnectionFactory() { HostName = "localhost" };
                 factory.AutomaticRecoveryEnabled = true;
@@ -24,7 +27,7 @@ namespace QueueMessageSender
             }
         }
 
-        private void CreateChannel(object status) 
+        private void CreateChannel(object status)
         {
             channel.Close();
             channel = connection.CreateModel();
@@ -43,7 +46,7 @@ namespace QueueMessageSender
                                      basicProperties: null,
                                      body: body);
             }
-            catch (Exception e){}
+            catch (Exception e) { }
         }
     }
 }

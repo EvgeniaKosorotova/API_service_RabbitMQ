@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using QueueMessageSender.Logic;
 using QueueMessageSender.Models;
 
 namespace QueueMessageSender.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class MessagesController : ControllerBase
     {

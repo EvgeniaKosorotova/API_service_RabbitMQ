@@ -1,7 +1,6 @@
 ﻿using QueueMessageSender.Models;
 
-
-namespace QueueMessageSender
+namespace QueueMessageSender.Logic
 {
     /// <summary>
     /// Abstraction to publish messages to the queue.
