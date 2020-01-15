@@ -6,41 +6,37 @@ using System.Threading;
 
 namespace QueueMessageSender.Logic
 {
-    class RmqMessageSender : IQueueMessageSender
+    public sealed class RmqMessageSender : IQueueMessageSender
     {
+        RmqMessageSender()
+        {
+            CreateConnection();
+        }
+        private static readonly object padlock = new object();
+        private static RmqMessageSender _instance = null;
+        public static RmqMessageSender Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    lock (padlock)
+                    {
+                        if (_instance == null)
+                        {
+                            _instance = new RmqMessageSender();
+                        }
+                    }
+                }
+                return _instance;
+            }
+        }
+
         private static IModel channel;
         private static IConnection connection;
         private static ConnectionFactory factory;
 
-        //private ConnectionFactory factory;
-        //private static readonly object padlock = new object();
-
-        //public static ConnectionFactory Factory
-        //{
-        //    get
-        //    {
-        //        if (factory == null)
-        //        {
-        //            lock (padlock)
-        //            {
-        //                if (factory == null)
-        //                {
-        //                    factory = new ConnectionFactory() { HostName = "localhost" };
-        //                    factory.AutomaticRecoveryEnabled = true;
-        //                    connection = factory.CreateConnection();
-        //                    channel = connection.CreateModel();
-        //                    Timer timer = new Timer(CreateChannel, 0, Convert.ToInt32(channel.ContinuationTimeout.TotalMilliseconds), Convert.ToInt32(channel.ContinuationTimeout.TotalMilliseconds));
-        //                }
-        //            }
-        //        }
-        //        return factory;
-        //    }
-        //}
-
-        /// <summary>
-        /// Class to publish messages to the queue RabbitMQ.
-        /// </summary>
-        public void CreateConnection()
+        private void CreateConnection()
         {
             if (factory == null)
             {
@@ -60,6 +56,11 @@ namespace QueueMessageSender.Logic
 
         public void SendMessage(DepartureData data)
         {
+            if (factory == null || connection == null || channel == null) 
+            {
+                CreateConnection();
+            }
+
             channel.ExchangeDeclare(exchange: data.NameExchange, type: ExchangeType.Fanout);
 
             channel.BasicPublish(exchange: data.NameExchange,
