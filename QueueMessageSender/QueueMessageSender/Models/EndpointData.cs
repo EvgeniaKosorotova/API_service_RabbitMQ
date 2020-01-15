@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace QueueMessageSender.Models
@@ -8,35 +9,19 @@ namespace QueueMessageSender.Models
     /// </summary>
     public class EndpointData
     {
-        private string nameExchange;
+        /// <summary>
+        /// Name exchange
+        /// </summary>
+        [Required, StringLength(30)]
+        [RegularExpression(@"^[a-zA-Z0-9]{1}[a-zA-Z0-9_]{0,}$")]
+        public string Exchange { get; set; }
 
-        [Required]
-        [JsonPropertyName("exchange")]
-        public string NameExchange
-        {
-            get => nameExchange;
-            set
-            {
-                nameExchange = "123";
-                //Regex r = new Regex(@"^[a-zA-Z0-9]{1}[a-zA-Z0-9_]{0,29}$");
-                //nameExchange = r.IsMatch(value) ? value : null;
-            }
-        }
-
-        private string routingKey;
-
-        [Required]
-        [JsonPropertyName("key")]
-        public string RoutingKey
-        {
-            get => routingKey;
-            set 
-            { 
-                routingKey = "123";
-                //Regex r = new Regex(@"^[a-zA-Z0-9]{1}[a-zA-Z0-9_.]{0,29}$");
-                //routingKey = r.IsMatch(value) ? value : null;
-            }
-        }
+        /// <summary>
+        /// Routing key
+        /// </summary>
+        [Required, StringLength(30)]
+        [RegularExpression(@"^[a-zA-Z0-9]{1}[a-zA-Z0-9_.]{0,}$")]
+        public string Key { get; set; }
 
         public object Message { get; set; }
     }
