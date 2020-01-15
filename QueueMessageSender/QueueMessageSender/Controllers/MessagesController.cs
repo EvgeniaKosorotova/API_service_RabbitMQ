@@ -10,12 +10,12 @@ namespace QueueMessageSender.Controllers
     {
         // POST: api/Send
         [HttpPost]
-        public IActionResult Post(EndpointData model)
+        public IActionResult Post([FromBody]EndpointData model)
         {
             var departureData = new DepartureData
             {
-                NameExchange = model.NameExchange,
-                RoutingKey = model.RoutingKey,
+                NameExchange = model.Exchange,
+                RoutingKey = model.Key,
                 Message = model.Message
             };
             var sender = new RmqMessageSender();

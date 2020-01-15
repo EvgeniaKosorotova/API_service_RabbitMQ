@@ -1,16 +1,41 @@
 ﻿using QueueMessageSender.Models;
 using RabbitMQ.Client;
 using System;
-using System.Text;
+using System.Text.Json;
 using System.Threading;
 
 namespace QueueMessageSender.Logic
 {
     class RmqMessageSender : IQueueMessageSender
     {
-        protected IModel channel;
-        protected IConnection connection;
-        protected ConnectionFactory factory;
+        private static IModel channel;
+        private static IConnection connection;
+        private static ConnectionFactory factory;
+
+        //private ConnectionFactory factory;
+        //private static readonly object padlock = new object();
+
+        //public static ConnectionFactory Factory
+        //{
+        //    get
+        //    {
+        //        if (factory == null)
+        //        {
+        //            lock (padlock)
+        //            {
+        //                if (factory == null)
+        //                {
+        //                    factory = new ConnectionFactory() { HostName = "localhost" };
+        //                    factory.AutomaticRecoveryEnabled = true;
+        //                    connection = factory.CreateConnection();
+        //                    channel = connection.CreateModel();
+        //                    Timer timer = new Timer(CreateChannel, 0, Convert.ToInt32(channel.ContinuationTimeout.TotalMilliseconds), Convert.ToInt32(channel.ContinuationTimeout.TotalMilliseconds));
+        //                }
+        //            }
+        //        }
+        //        return factory;
+        //    }
+        //}
 
         /// <summary>
         /// Class to publish messages to the queue RabbitMQ.
@@ -27,7 +52,7 @@ namespace QueueMessageSender.Logic
             }
         }
 
-        private void CreateChannel(object status)
+        private static void CreateChannel(object status)
         {
             channel.Close();
             channel = connection.CreateModel();
@@ -35,18 +60,12 @@ namespace QueueMessageSender.Logic
 
         public void SendMessage(DepartureData data)
         {
-            try
-            {
-                channel.ExchangeDeclare(exchange: data.NameExchange, type: ExchangeType.Fanout);
+            channel.ExchangeDeclare(exchange: data.NameExchange, type: ExchangeType.Fanout);
 
-                var body = Encoding.UTF8.GetBytes((char[])data.Message);
-
-                channel.BasicPublish(exchange: data.NameExchange,
-                                     routingKey: data.RoutingKey,
-                                     basicProperties: null,
-                                     body: body);
-            }
-            catch (Exception e) { }
+            channel.BasicPublish(exchange: data.NameExchange,
+                                 routingKey: data.RoutingKey,
+                                 basicProperties: null,
+                                 body: JsonSerializer.SerializeToUtf8Bytes(data.Message));
         }
     }
 }
