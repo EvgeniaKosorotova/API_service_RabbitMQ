@@ -7,6 +7,9 @@ using System.Threading;
 
 namespace QueueMessageSender.Logic
 {
+    /// <summary>
+    /// Class to publish messages to the queue RabbitMQ.
+    /// </summary>
     public class RmqMessageSender : IQueueMessageSender
     {
         public RmqMessageSender()
