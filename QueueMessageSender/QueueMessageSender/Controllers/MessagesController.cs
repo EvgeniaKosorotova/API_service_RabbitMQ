@@ -16,6 +16,7 @@ namespace QueueMessageSender.Controllers
         }
 
         // POST: Messages
+
         [HttpPost]
         public IActionResult Post([FromBody]EndpointData model)
         {
@@ -25,7 +26,8 @@ namespace QueueMessageSender.Controllers
                 RoutingKey = model.Key,
                 Message = model.Message
             };
-            _sender.SendMessage(departureData);
+            RmqMessageSender sender = RmqMessageSender.Instance;
+            sender.SendMessage(departureData);
             return Ok();
         }
     }
