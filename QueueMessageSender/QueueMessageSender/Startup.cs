@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using QueueMessageSender.Logic;
 
 namespace QueueMessageSender
 {
@@ -17,9 +18,9 @@ namespace QueueMessageSender
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvcCore();
+            services.AddMvcCore().AddDataAnnotations();
             services.AddControllers();
-                //.AddDataAnnotationsLocalization();
+            services.AddSingleton<IQueueMessageSender, RmqMessageSender>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

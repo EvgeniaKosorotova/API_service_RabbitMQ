@@ -26,8 +26,7 @@ namespace QueueMessageSender.Controllers
                 RoutingKey = model.Key,
                 Message = model.Message
             };
-            RmqMessageSender sender = RmqMessageSender.Instance;
-            sender.SendMessage(departureData);
+            _sender.SendMessage(departureData);
             return Ok();
         }
     }

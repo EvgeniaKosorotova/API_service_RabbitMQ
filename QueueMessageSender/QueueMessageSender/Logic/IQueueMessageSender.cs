@@ -5,7 +5,7 @@ namespace QueueMessageSender.Logic
     /// <summary>
     /// Abstraction to publish messages to the queue.
     /// </summary>
-    interface IQueueMessageSender
+    public interface IQueueMessageSender
     {
         void SendMessage(DepartureData data);
     }
