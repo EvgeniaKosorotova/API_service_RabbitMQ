@@ -1,6 +1,7 @@
 ﻿using QueueMessageSender.Models;
 using RabbitMQ.Client;
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 
@@ -12,39 +13,28 @@ namespace QueueMessageSender.Logic
         {
             CreateConnection();
         }
-        //private static readonly object padlock = new object();
-        //private static RmqMessageSender _instance = null;
-        //public static RmqMessageSender Instance
-        //{
-        //    get
-        //    {
-        //        if (_instance == null)
-        //        {
-        //            lock (padlock)
-        //            {
-        //                if (_instance == null)
-        //                {
-        //                    _instance = new RmqMessageSender();
-        //                }
-        //            }
-        //        }
-        //        return _instance;
-        //    }
-        //}
 
         private static IModel channel;
         private static IConnection connection;
         private static ConnectionFactory factory;
+        private static readonly object padlock = new object();
+        private static List<string> namesExchange = new List<string>();
 
         private void CreateConnection()
         {
             if (factory == null)
             {
-                factory = new ConnectionFactory() { HostName = "localhost" };
-                factory.AutomaticRecoveryEnabled = true;
-                connection = factory.CreateConnection();
-                channel = connection.CreateModel();
-                Timer timer = new Timer(CreateChannel, 0, Convert.ToInt32(channel.ContinuationTimeout.TotalMilliseconds), Convert.ToInt32(channel.ContinuationTimeout.TotalMilliseconds));
+                lock (padlock)
+                {
+                    if (factory == null)
+                    {
+                        factory = new ConnectionFactory() { HostName = "localhost" };
+                        factory.AutomaticRecoveryEnabled = true;
+                        connection = factory.CreateConnection();
+                        channel = connection.CreateModel();
+                        Timer timer = new Timer(CreateChannel, 0, Convert.ToInt32(channel.ContinuationTimeout.TotalMilliseconds), Convert.ToInt32(channel.ContinuationTimeout.TotalMilliseconds));
+                    }
+                }
             }
         }
 
@@ -61,7 +51,11 @@ namespace QueueMessageSender.Logic
                 CreateConnection();
             }
 
-            channel.ExchangeDeclare(exchange: data.NameExchange, type: ExchangeType.Fanout);
+            if (!namesExchange.Contains(data.NameExchange))
+            {
+                channel.ExchangeDeclare(exchange: data.NameExchange, type: ExchangeType.Fanout);
+                namesExchange.Add(data.NameExchange);
+            }
 
             channel.BasicPublish(exchange: data.NameExchange,
                                  routingKey: data.RoutingKey,
