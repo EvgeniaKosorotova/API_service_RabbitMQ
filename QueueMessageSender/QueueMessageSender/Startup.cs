@@ -33,9 +33,6 @@ namespace QueueMessageSender
             {
                 endpoints.MapControllers();
             });
-
-            //app.UseHttpsRedirection();
-            //app.UseAuthorization();
         }
     }
 }

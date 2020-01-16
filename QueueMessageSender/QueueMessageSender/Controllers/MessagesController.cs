@@ -8,7 +8,15 @@ namespace QueueMessageSender.Controllers
     [ApiController]
     public class MessagesController : ControllerBase
     {
-        // POST: api/Send
+        private readonly IQueueMessageSender _sender;
+
+        public MessagesController(IQueueMessageSender sender)
+        {
+            _sender = sender;
+        }
+
+        // POST: Messages
+
         [HttpPost]
         public IActionResult Post([FromBody]EndpointData model)
         {
