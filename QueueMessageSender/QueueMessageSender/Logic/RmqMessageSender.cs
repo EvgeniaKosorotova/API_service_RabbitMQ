@@ -6,31 +6,31 @@ using System.Threading;
 
 namespace QueueMessageSender.Logic
 {
-    public sealed class RmqMessageSender : IQueueMessageSender
+    public class RmqMessageSender : IQueueMessageSender
     {
-        RmqMessageSender()
+        public RmqMessageSender()
         {
             CreateConnection();
         }
-        private static readonly object padlock = new object();
-        private static RmqMessageSender _instance = null;
-        public static RmqMessageSender Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    lock (padlock)
-                    {
-                        if (_instance == null)
-                        {
-                            _instance = new RmqMessageSender();
-                        }
-                    }
-                }
-                return _instance;
-            }
-        }
+        //private static readonly object padlock = new object();
+        //private static RmqMessageSender _instance = null;
+        //public static RmqMessageSender Instance
+        //{
+        //    get
+        //    {
+        //        if (_instance == null)
+        //        {
+        //            lock (padlock)
+        //            {
+        //                if (_instance == null)
+        //                {
+        //                    _instance = new RmqMessageSender();
+        //                }
+        //            }
+        //        }
+        //        return _instance;
+        //    }
+        //}
 
         private static IModel channel;
         private static IConnection connection;
@@ -56,7 +56,7 @@ namespace QueueMessageSender.Logic
 
         public void SendMessage(DepartureData data)
         {
-            if (factory == null || connection == null || channel == null) 
+            if (factory == null || connection == null || channel == null)
             {
                 CreateConnection();
             }
