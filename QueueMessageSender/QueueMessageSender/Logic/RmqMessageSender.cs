@@ -1,6 +1,7 @@
 ﻿using QueueMessageSender.Models;
 using RabbitMQ.Client;
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 
@@ -10,30 +11,10 @@ namespace QueueMessageSender.Logic
     /// Class to publish messages to the queue RabbitMQ.
     /// </summary>
     public class RmqMessageSender : IQueueMessageSender
-
     {
-        RmqMessageSender()
+        public RmqMessageSender()
         {
             CreateConnection();
-        }
-        private static readonly object padlock = new object();
-        private static RmqMessageSender _instance = null;
-        public static RmqMessageSender Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    lock (padlock)
-                    {
-                        if (_instance == null)
-                        {
-                            _instance = new RmqMessageSender();
-                        }
-                    }
-                }
-                return _instance;
-            }
         }
 
         private static IModel _channel;
