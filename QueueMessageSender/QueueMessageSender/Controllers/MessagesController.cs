@@ -15,7 +15,7 @@ namespace QueueMessageSender.Controllers
             _sender = sender;
         }
 
-        // POST: api/Send
+        // POST: Messages
         [HttpPost]
         public IActionResult Post([FromBody]EndpointData model)
         {

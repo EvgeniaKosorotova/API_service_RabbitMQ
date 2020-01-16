@@ -5,8 +5,8 @@
     /// </summary>
     public class DepartureData
     {
-        public string NameExchange;
-        public string RoutingKey;
-        public object Message;
+        public string NameExchange { get; set; }
+        public string RoutingKey { get; set; }
+        public object Message { get; set; }
     }
 }

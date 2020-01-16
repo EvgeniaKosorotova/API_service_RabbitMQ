@@ -14,25 +14,25 @@ namespace QueueMessageSender.Logic
             CreateConnection();
         }
 
-        private static IModel channel;
-        private static IConnection connection;
-        private static ConnectionFactory factory;
-        private static readonly object padlock = new object();
-        private static List<string> namesExchange = new List<string>();
+        private static IModel _channel;
+        private static IConnection _connection;
+        private static ConnectionFactory _factory;
+        private static readonly object _padlock = new object();
+        private static List<string> _namesExchange = new List<string>();
 
         private void CreateConnection()
         {
-            if (factory == null)
+            if (_factory == null)
             {
-                lock (padlock)
+                lock (_padlock)
                 {
-                    if (factory == null)
+                    if (_factory == null)
                     {
-                        factory = new ConnectionFactory() { HostName = "localhost" };
-                        factory.AutomaticRecoveryEnabled = true;
-                        connection = factory.CreateConnection();
-                        channel = connection.CreateModel();
-                        Timer timer = new Timer(CreateChannel, 0, Convert.ToInt32(channel.ContinuationTimeout.TotalMilliseconds), Convert.ToInt32(channel.ContinuationTimeout.TotalMilliseconds));
+                        _factory = new ConnectionFactory() { HostName = "localhost" };
+                        _factory.AutomaticRecoveryEnabled = true;
+                        _connection = _factory.CreateConnection();
+                        _channel = _connection.CreateModel();
+                        Timer timer = new Timer(CreateChannel, 0, Convert.ToInt32(_channel.ContinuationTimeout.TotalMilliseconds), Convert.ToInt32(_channel.ContinuationTimeout.TotalMilliseconds));
                     }
                 }
             }
@@ -40,24 +40,24 @@ namespace QueueMessageSender.Logic
 
         private static void CreateChannel(object status)
         {
-            channel.Close();
-            channel = connection.CreateModel();
+            _channel.Close();
+            _channel = _connection.CreateModel();
         }
 
         public void SendMessage(DepartureData data)
         {
-            if (factory == null || connection == null || channel == null)
+            if (_factory == null || _connection == null || _channel == null)
             {
                 CreateConnection();
             }
 
-            if (!namesExchange.Contains(data.NameExchange))
+            if (!_namesExchange.Contains(data.NameExchange))
             {
-                channel.ExchangeDeclare(exchange: data.NameExchange, type: ExchangeType.Fanout);
-                namesExchange.Add(data.NameExchange);
+                _channel.ExchangeDeclare(exchange: data.NameExchange, type: ExchangeType.Fanout);
+                _namesExchange.Add(data.NameExchange);
             }
 
-            channel.BasicPublish(exchange: data.NameExchange,
+            _channel.BasicPublish(exchange: data.NameExchange,
                                  routingKey: data.RoutingKey,
                                  basicProperties: null,
                                  body: JsonSerializer.SerializeToUtf8Bytes(data.Message));
