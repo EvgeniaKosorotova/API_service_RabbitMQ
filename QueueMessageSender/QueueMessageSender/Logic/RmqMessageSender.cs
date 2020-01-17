@@ -17,65 +17,101 @@ namespace QueueMessageSender.Logic
             CreateConnection();
         }
 
-        private Lazy<ConnectionFactory> _factory = new Lazy<ConnectionFactory>(() =>
+        #region Factory field and property
+        private Lazy<ConnectionFactory> _factoryLazy = new Lazy<ConnectionFactory>(() =>
         {
             return null;
         });
-        private Lazy<IConnection> _connection = new Lazy<IConnection>(() =>
+        private ConnectionFactory Factory
+        {
+            get
+            {
+                return _factoryLazy.Value;
+            }
+        }
+        #endregion
+
+        #region Connection field and property
+        private Lazy<IConnection> _connectionLazy = new Lazy<IConnection>(() =>
         {
             return null;
         });
-        private Lazy<IModel> _channel = new Lazy<IModel>(() =>
+        private IConnection Connection
+        {
+            get
+            {
+                return _connectionLazy.Value;
+            }
+        }
+        #endregion
+
+        #region Channel field and property
+        private Lazy<IModel> _channelLazy = new Lazy<IModel>(() =>
         {
             return null;
         });
-        private Lazy<List<string>> _namesExchange = new Lazy<List<string>>(() =>
+        private IModel Channel
+        {
+            get
+            {
+                return _channelLazy.Value;
+            }
+        }
+        #endregion
+
+        #region Channel field and property
+        private Lazy<List<string>> _namesExchangeLazy = new Lazy<List<string>>(() =>
         {
             return new List<string>();
         });
+        private List<string> NamesExchange
+        {
+            get
+            {
+                return _namesExchangeLazy.Value;
+            }
+        }
+        #endregion
 
         private void CreateConnection()
         {
-            _factory = new Lazy<ConnectionFactory>(() =>
+            _factoryLazy = new Lazy<ConnectionFactory>(() =>
             {
                 ConnectionFactory factory = new ConnectionFactory() { HostName = "localhost" };
                 factory.AutomaticRecoveryEnabled = true;
                 return factory;
             });
 
-            _connection = new Lazy<IConnection>(() =>
+            _connectionLazy = new Lazy<IConnection>(() =>
             {
-                ConnectionFactory factory = _factory.Value;
-                return factory.CreateConnection();
+                return Factory.CreateConnection();
             });
 
-            _channel = new Lazy<IModel>(() =>
+            _channelLazy = new Lazy<IModel>(() =>
             {
-                IConnection connection = _connection.Value;
-                return connection.CreateModel();
+                return Connection.CreateModel();
             });
 
-            Timer timer = new Timer(CreateChannel, 0, Convert.ToInt32((_channel.Value).ContinuationTimeout.TotalMilliseconds), Convert.ToInt32((_channel.Value).ContinuationTimeout.TotalMilliseconds));
+            Timer timer = new Timer(CreateChannel, 0, Convert.ToInt32(Channel.ContinuationTimeout.TotalMilliseconds), Convert.ToInt32(Channel.ContinuationTimeout.TotalMilliseconds));
         }
 
         private void CreateChannel(object status)
         {
-            (_channel.Value).Close();
-            _channel = new Lazy<IModel>(() =>
+            Channel.Close();
+            _channelLazy = new Lazy<IModel>(() =>
             {
-                IConnection connection = _connection.Value;
-                return connection.CreateModel();
+                return Connection.CreateModel();
             });
         }
 
         private void VerifyExchangeCreation(string nameExchange) 
         {
-            if (!(_namesExchange.Value).Contains(nameExchange))
+            if (!NamesExchange.Contains(nameExchange))
             {
                 try
                 {
-                    (_channel.Value).ExchangeDeclare(exchange: nameExchange, type: ExchangeType.Fanout);
-                    (_namesExchange.Value).Add(nameExchange);
+                    Channel.ExchangeDeclare(exchange: nameExchange, type: ExchangeType.Fanout);
+                    NamesExchange.Add(nameExchange);
                 }
                 catch (RabbitMQ.Client.Exceptions.AlreadyClosedException)
                 {
@@ -86,7 +122,7 @@ namespace QueueMessageSender.Logic
 
         public void SendMessage(DepartureDataModel data)
         {
-            if (_factory.Value == null || _connection.Value == null || _channel.Value == null)
+            if (Factory == null || Connection == null || Channel == null)
             {
                 CreateConnection();
             }
@@ -95,7 +131,7 @@ namespace QueueMessageSender.Logic
 
             try
             {
-                (_channel.Value).BasicPublish(exchange: data.NameExchange,
+                Channel.BasicPublish(exchange: data.NameExchange,
                                  routingKey: data.RoutingKey,
                                  basicProperties: null,
                                  body: JsonSerializer.SerializeToUtf8Bytes(data.Message));
