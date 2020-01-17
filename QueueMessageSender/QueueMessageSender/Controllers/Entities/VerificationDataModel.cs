@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace QueueMessageSender.Models
+namespace QueueMessageSender.Controllers.Entities
 {
     /// <summary>
-    /// The model of the data sent in the POST request.
+    /// The model of the data received in the POST request, with verification.
     /// </summary>
-    public class ReceivedDataModel
+    public class VerificationDataModel
     {
         /// <summary>
         /// Name exchange

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using QueueMessageSender.Controllers.Entities;
 using QueueMessageSender.Logic;
-using QueueMessageSender.Models;
+using QueueMessageSender.Logic.Entities;
 
 namespace QueueMessageSender.Controllers
 {
@@ -19,9 +20,9 @@ namespace QueueMessageSender.Controllers
         /// A method that accepts JSON with message information and sends the message in exchange.
         /// </summary>
         [HttpPost]
-        public IActionResult Post(ReceivedDataModel model)
+        public IActionResult Post(VerificationDataModel model)
         {
-            var departureData = new DepartureDataModel
+            var departureData = new DepartureDatаRMQModel
             {
                 NameExchange = model.Exchange,
                 RoutingKey = model.Key,

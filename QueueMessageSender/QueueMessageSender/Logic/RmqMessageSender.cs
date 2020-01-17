@@ -1,4 +1,4 @@
-﻿using QueueMessageSender.Models;
+﻿using QueueMessageSender.Logic.Entities;
 using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
@@ -10,9 +10,9 @@ namespace QueueMessageSender.Logic
     /// <summary>
     /// Class to publish messages to the queue RabbitMQ.
     /// </summary>
-    public class RmqMessageSender : IQueueMessageSender
+    public class RMQMessageSender : IQueueMessageSender
     {
-        public RmqMessageSender()
+        public RMQMessageSender()
         {
             CreateConnection();
         }
@@ -79,6 +79,7 @@ namespace QueueMessageSender.Logic
             {
                 ConnectionFactory factory = new ConnectionFactory() { HostName = "localhost" };
                 factory.AutomaticRecoveryEnabled = true;
+
                 return factory;
             });
 
@@ -120,7 +121,7 @@ namespace QueueMessageSender.Logic
             }
         }
 
-        public void SendMessage(DepartureDataModel data)
+        public void SendMessage(DepartureDatаRMQModel data)
         {
             if (Factory == null || Connection == null || Channel == null)
             {
@@ -141,7 +142,5 @@ namespace QueueMessageSender.Logic
                 CreateConnection();
             }
         }
-
-
     }
 }

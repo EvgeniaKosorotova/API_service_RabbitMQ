@@ -20,7 +20,7 @@ namespace QueueMessageSender
         {
             services.AddMvcCore().AddDataAnnotations();
             services.AddControllers();
-            services.AddSingleton<IQueueMessageSender, RmqMessageSender>();
+            services.AddSingleton<IQueueMessageSender, RMQMessageSender>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
