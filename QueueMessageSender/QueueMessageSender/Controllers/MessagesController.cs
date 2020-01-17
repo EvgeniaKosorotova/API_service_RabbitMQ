@@ -4,9 +4,6 @@ using QueueMessageSender.Models;
 
 namespace QueueMessageSender.Controllers
 {
-    /// <summary>
-    /// The controller accepts HTTP requests.
-    /// </summary>
     [Route("[controller]")]
     [ApiController]
     public class MessagesController : ControllerBase
@@ -21,17 +18,17 @@ namespace QueueMessageSender.Controllers
         /// <summary>
         /// A method that accepts JSON with message information and sends the message in exchange.
         /// </summary>
-        // POST: Messages
         [HttpPost]
-        public IActionResult Post(EndpointData model)
+        public IActionResult Post(ReceivedDataModel model)
         {
-            var departureData = new DepartureData
+            var departureData = new DepartureDataModel
             {
                 NameExchange = model.Exchange,
                 RoutingKey = model.Key,
                 Message = model.Message
             };
             _sender.SendMessage(departureData);
+
             return Ok();
         }
     }

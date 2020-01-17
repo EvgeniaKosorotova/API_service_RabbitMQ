@@ -17,53 +17,95 @@ namespace QueueMessageSender.Logic
             CreateConnection();
         }
 
-        private static IModel _channel;
-        private static IConnection _connection;
-        private static ConnectionFactory _factory;
-        private static readonly object _padlock = new object();
-        private static List<string> _namesExchange = new List<string>();
+        private Lazy<ConnectionFactory> _factory = new Lazy<ConnectionFactory>(() =>
+        {
+            return null;
+        });
+        private Lazy<IConnection> _connection = new Lazy<IConnection>(() =>
+        {
+            return null;
+        });
+        private Lazy<IModel> _channel = new Lazy<IModel>(() =>
+        {
+            return null;
+        });
+        private Lazy<List<string>> _namesExchange = new Lazy<List<string>>(() =>
+        {
+            return new List<string>();
+        });
 
         private void CreateConnection()
         {
-            if (_factory == null)
+            _factory = new Lazy<ConnectionFactory>(() =>
             {
-                lock (_padlock)
+                ConnectionFactory factory = new ConnectionFactory() { HostName = "localhost" };
+                factory.AutomaticRecoveryEnabled = true;
+                return factory;
+            });
+
+            _connection = new Lazy<IConnection>(() =>
+            {
+                ConnectionFactory factory = _factory.Value;
+                return factory.CreateConnection();
+            });
+
+            _channel = new Lazy<IModel>(() =>
+            {
+                IConnection connection = _connection.Value;
+                return connection.CreateModel();
+            });
+
+            Timer timer = new Timer(CreateChannel, 0, Convert.ToInt32((_channel.Value).ContinuationTimeout.TotalMilliseconds), Convert.ToInt32((_channel.Value).ContinuationTimeout.TotalMilliseconds));
+        }
+
+        private void CreateChannel(object status)
+        {
+            (_channel.Value).Close();
+            _channel = new Lazy<IModel>(() =>
+            {
+                IConnection connection = _connection.Value;
+                return connection.CreateModel();
+            });
+        }
+
+        private void VerifyExchangeCreation(string nameExchange) 
+        {
+            if (!(_namesExchange.Value).Contains(nameExchange))
+            {
+                try
                 {
-                    if (_factory == null)
-                    {
-                        _factory = new ConnectionFactory() { HostName = "localhost" };
-                        _factory.AutomaticRecoveryEnabled = true;
-                        _connection = _factory.CreateConnection();
-                        _channel = _connection.CreateModel();
-                        Timer timer = new Timer(CreateChannel, 0, Convert.ToInt32(_channel.ContinuationTimeout.TotalMilliseconds), Convert.ToInt32(_channel.ContinuationTimeout.TotalMilliseconds));
-                    }
+                    (_channel.Value).ExchangeDeclare(exchange: nameExchange, type: ExchangeType.Fanout);
+                    (_namesExchange.Value).Add(nameExchange);
+                }
+                catch (RabbitMQ.Client.Exceptions.AlreadyClosedException)
+                {
+                    CreateConnection();
                 }
             }
         }
 
-        private static void CreateChannel(object status)
+        public void SendMessage(DepartureDataModel data)
         {
-            _channel.Close();
-            _channel = _connection.CreateModel();
-        }
-
-        public void SendMessage(DepartureData data)
-        {
-            if (_factory == null || _connection == null || _channel == null)
+            if (_factory.Value == null || _connection.Value == null || _channel.Value == null)
             {
                 CreateConnection();
             }
 
-            if (!_namesExchange.Contains(data.NameExchange))
-            {
-                _channel.ExchangeDeclare(exchange: data.NameExchange, type: ExchangeType.Fanout);
-                _namesExchange.Add(data.NameExchange);
-            }
+            VerifyExchangeCreation(data.NameExchange);
 
-            _channel.BasicPublish(exchange: data.NameExchange,
+            try
+            {
+                (_channel.Value).BasicPublish(exchange: data.NameExchange,
                                  routingKey: data.RoutingKey,
                                  basicProperties: null,
                                  body: JsonSerializer.SerializeToUtf8Bytes(data.Message));
+            }
+            catch (RabbitMQ.Client.Exceptions.AlreadyClosedException) 
+            {
+                CreateConnection();
+            }
         }
+
+
     }
 }

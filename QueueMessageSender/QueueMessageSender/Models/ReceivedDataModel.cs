@@ -5,7 +5,7 @@ namespace QueueMessageSender.Models
     /// <summary>
     /// The model of the data sent in the POST request.
     /// </summary>
-    public class EndpointData
+    public class ReceivedDataModel
     {
         /// <summary>
         /// Name exchange
