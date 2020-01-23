@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using QueueMessageSender.Controllers.Entities;
+using QueueMessageSender.Controllers.Models;
 using QueueMessageSender.Logic;
-using QueueMessageSender.Logic.Entities;
+using QueueMessageSender.Logic.Models;
 
 namespace QueueMessageSender.Controllers
 {
@@ -20,7 +20,7 @@ namespace QueueMessageSender.Controllers
         /// A method that accepts JSON with message information and sends the message in exchange.
         /// </summary>
         [HttpPost]
-        public IActionResult Post(VerificationDataModel model)
+        public IActionResult Post(ReceivedDataModel model)
         {
             var departureData = new DepartureDatаRMQModel
             {

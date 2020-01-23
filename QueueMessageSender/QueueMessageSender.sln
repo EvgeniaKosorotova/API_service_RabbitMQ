@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueueMessageSender", "QueueMessageSender\QueueMessageSender.csproj", "{77862FC2-EF3B-4860-83D1-D88981041BB6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QueueMessageSender", "QueueMessageSender\QueueMessageSender.csproj", "{77862FC2-EF3B-4860-83D1-D88981041BB6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SendingPOSTRequests", "SendingPOSTRequests\SendingPOSTRequests.csproj", "{AADF1E3F-8505-4A17-8DB0-FC9B4A054394}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{77862FC2-EF3B-4860-83D1-D88981041BB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{77862FC2-EF3B-4860-83D1-D88981041BB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{77862FC2-EF3B-4860-83D1-D88981041BB6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AADF1E3F-8505-4A17-8DB0-FC9B4A054394}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AADF1E3F-8505-4A17-8DB0-FC9B4A054394}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AADF1E3F-8505-4A17-8DB0-FC9B4A054394}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AADF1E3F-8505-4A17-8DB0-FC9B4A054394}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
