@@ -14,9 +14,9 @@ namespace QueueMessageSender.Logic
     public class RMQMessageSender : IQueueMessageSender
     {
         private static readonly string hostname = "localhost";
-        private ConnectionFactory Factory;
-        private IConnection Connection;
-        private IModel Channel;
+        private ConnectionFactory Factory = null;
+        private IConnection Connection = null;
+        private IModel Channel = null;
         private readonly List<string> NamesExchange = new List<string>();
         private readonly object lockList = new object();
         private readonly object lockSend = new object();
@@ -30,23 +30,33 @@ namespace QueueMessageSender.Logic
         {
             Factory = new ConnectionFactory() { HostName = hostname };
             Factory.AutomaticRecoveryEnabled = true;
-            CreateConnection();
-            CreateChannel();
-            //Console.WriteLine("Создание (Create)");
-            //Connection.CallbackException += CreateConnection;
-            //Channel.ModelShutdown += CreateChannel;
+            Reconnect();
+            Console.WriteLine("Создание (Create)");
+            Connection.ConnectionShutdown += Reconnect;
+            Channel.ModelShutdown += Reconnect;
         }
 
-        private void CreateConnection(object sender = null, CallbackExceptionEventArgs e = null) 
+        private void Reconnect(object sender = null, ShutdownEventArgs e = null)
         {
-            Connection = Factory.CreateConnection();
-            //Console.WriteLine("Создание Подключения (Connection)");
-        }
-
-        private void CreateChannel(object sender = null, ShutdownEventArgs e = null)
-        {
-            Channel = Connection.CreateModel();
-            //Console.WriteLine("Создание Канала (Channel)");
+            try
+            {
+                Console.WriteLine("!Создание (Reconnect)");
+                if (Connection == null || !Connection.IsOpen)
+                {
+                    Console.WriteLine("!Создание (Connection)");
+                    Connection = Factory.CreateConnection();
+                }
+                if (Channel == null || Channel.IsClosed)
+                {
+                    Console.WriteLine("!Создание (Channel)");
+                    Channel = Connection.CreateModel();
+                }
+            }
+            catch (RabbitMQ.Client.Exceptions.BrokerUnreachableException) 
+            {
+                Console.WriteLine("catch BrokerUnreachableException (Reconnect)");
+                Reconnect();
+            }
         }
 
         /// <summary>
@@ -64,8 +74,10 @@ namespace QueueMessageSender.Logic
                         Channel.ExchangeDeclare(exchange: nameExchange, type: ExchangeType.Fanout);
                         NamesExchange.Add(nameExchange);
                     }
-                    catch (RabbitMQ.Client.Exceptions.AlreadyClosedException)
+                    catch (RabbitMQ.Client.Exceptions.OperationInterruptedException)
                     {
+                        Console.WriteLine("catch OperationInterruptedException (CreateExchange)");
+                        Reconnect();
                         SendMessage(datаRMQ);
                     }
                 }
@@ -85,9 +97,11 @@ namespace QueueMessageSender.Logic
                                     basicProperties: null,
                                     body: JsonSerializer.SerializeToUtf8Bytes(data.Message));
                 }
-                catch (RabbitMQ.Client.Exceptions.AlreadyClosedException)
+                catch (Exception)
                 {
-                    SendMessage(data);
+                    Console.WriteLine("catch Exception Reconnect(); SendMessage(datаRMQ); (SendMessage) catch");
+                    Reconnect();
+                    SendMessage(datаRMQ);
                 }
             }
         }
