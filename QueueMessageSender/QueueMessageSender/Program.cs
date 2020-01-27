@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using QueueMessageSender.Logic;
 
 namespace QueueMessageSender
 {

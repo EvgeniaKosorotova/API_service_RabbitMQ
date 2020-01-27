@@ -14,6 +14,8 @@ namespace QueueMessageSender.Logic
     public class RMQMessageSender : IQueueMessageSender
     {
         private static readonly string hostname = "localhost";
+        //private static readonly string username = "guest";
+        //private static readonly string password = "guest";
         private ConnectionFactory Factory = null;
         private IConnection Connection = null;
         private IModel Channel = null;
@@ -26,9 +28,11 @@ namespace QueueMessageSender.Logic
             Create();
         }
 
-        private void Create() 
+        public void Create() 
         {
             Factory = new ConnectionFactory() { HostName = hostname };
+            //Factory.UserName = username;
+            //Factory.Password = password;
             Factory.AutomaticRecoveryEnabled = true;
             Reconnect();
             Console.WriteLine("Создание (Create)");
@@ -41,12 +45,18 @@ namespace QueueMessageSender.Logic
             try
             {
                 Console.WriteLine("!Создание (Reconnect)");
-                if (Connection == null || !Connection.IsOpen)
+                if (Factory == null)
+                {
+                    Console.WriteLine("!Создание (Connection)");
+                    Factory = new ConnectionFactory() { HostName = hostname };
+                    Factory.AutomaticRecoveryEnabled = true;
+                }
+                if (Connection == null || Connection.CloseReason != null)
                 {
                     Console.WriteLine("!Создание (Connection)");
                     Connection = Factory.CreateConnection();
                 }
-                if (Channel == null || Channel.IsClosed)
+                if (Channel == null || Channel.CloseReason != null)
                 {
                     Console.WriteLine("!Создание (Channel)");
                     Channel = Connection.CreateModel();
@@ -65,6 +75,7 @@ namespace QueueMessageSender.Logic
         /// </summary>
         private void CreateExchange(string nameExchange) 
         {
+            var isResend = false;
             lock (lockList) 
             {
                 if (!NamesExchange.Contains(nameExchange))
@@ -78,14 +89,20 @@ namespace QueueMessageSender.Logic
                     {
                         Console.WriteLine("catch OperationInterruptedException (CreateExchange)");
                         Reconnect();
-                        SendMessage(datаRMQ);
+                        isResend = true;
                     }
                 }
+            }
+            if (isResend)
+            {
+                isResend = false;
+                ResendMessage(datаRMQ);
             }
         }
 
         public void SendMessage(DepartureDatаRMQModel data)
         {
+            var isResend = false;
             lock (lockSend)
             {
                 datаRMQ = data;
@@ -101,9 +118,19 @@ namespace QueueMessageSender.Logic
                 {
                     Console.WriteLine("catch Exception Reconnect(); SendMessage(datаRMQ); (SendMessage) catch");
                     Reconnect();
-                    SendMessage(datаRMQ);
+                    isResend = true;
                 }
             }
+            if (isResend) 
+            {
+                isResend = false;
+                ResendMessage(datаRMQ);
+            }
+        }
+
+        private void ResendMessage(DepartureDatаRMQModel data) 
+        {
+            SendMessage(data);
         }
     }
 }

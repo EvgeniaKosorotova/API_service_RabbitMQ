@@ -34,6 +34,7 @@ namespace QueueMessageSender
             {
                 endpoints.MapControllers();
             });
+            app.UseMiddleware<Middleware>();
         }
     }
 }
