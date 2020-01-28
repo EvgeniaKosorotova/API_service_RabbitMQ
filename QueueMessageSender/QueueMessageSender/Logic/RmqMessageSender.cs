@@ -1,10 +1,11 @@
-﻿using QueueMessageSender.Logic.Models;
+﻿using Microsoft.Extensions.Logging;
+using Polly;
+using QueueMessageSender.Logic.Models;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Text.Json;
+using System.Threading;
 
 namespace QueueMessageSender.Logic
 {
@@ -14,123 +15,139 @@ namespace QueueMessageSender.Logic
     public class RMQMessageSender : IQueueMessageSender
     {
         private static readonly string hostname = "localhost";
-        //private static readonly string username = "guest";
-        //private static readonly string password = "guest";
         private ConnectionFactory Factory = null;
         private IConnection Connection = null;
         private IModel Channel = null;
         private readonly List<string> NamesExchange = new List<string>();
         private readonly object lockList = new object();
-        private readonly object lockSend = new object();
+        private readonly object lockFactory = new object();
+        private readonly object lockConnection = new object();
+        private readonly object lockChannel = new object();
+        private readonly object lockInit = new object();
         private DepartureDatаRMQModel datаRMQ;
-        public RMQMessageSender()
-        {
-            Create();
-        }
+        private readonly ILogger<RMQMessageSender> _logger;
+        private readonly Policy retry = Policy
+            .Handle<RabbitMQ.Client.Exceptions.BrokerUnreachableException> ()
+            .WaitAndRetry(3, retryAttempt => TimeSpan.FromSeconds(15));
 
-        public void Create() 
+        public RMQMessageSender(ILogger<RMQMessageSender> logger)
         {
-            Factory = new ConnectionFactory() { HostName = hostname };
-            //Factory.UserName = username;
-            //Factory.Password = password;
-            Factory.AutomaticRecoveryEnabled = true;
-            Reconnect();
-            Console.WriteLine("Создание (Create)");
-            Connection.ConnectionShutdown += Reconnect;
-            Channel.ModelShutdown += Reconnect;
+            _logger = logger;
+            if (Factory == null || Connection?.CloseReason != null || Channel?.CloseReason != null)
+            {
+                lock (lockInit) 
+                {
+                    if (Factory == null || Connection?.CloseReason != null || Channel?.CloseReason != null)
+                    {
+                        Factory = new ConnectionFactory() { HostName = hostname };
+                        Factory.AutomaticRecoveryEnabled = true;
+                        Connection = Factory.CreateConnection();
+                        Channel = Connection.CreateModel();
+                        _logger.LogInformation("Connection factory, connection, channel were created.");
+
+                        Connection.ConnectionShutdown += Reconnect;
+                        Channel.ModelShutdown += Reconnect;
+                    }
+                }
+            }
         }
 
         private void Reconnect(object sender = null, ShutdownEventArgs e = null)
         {
-            try
+            retry.Execute(() =>
             {
-                Console.WriteLine("!Создание (Reconnect)");
-                if (Factory == null)
+                try
                 {
-                    Console.WriteLine("!Создание (Connection)");
-                    Factory = new ConnectionFactory() { HostName = hostname };
-                    Factory.AutomaticRecoveryEnabled = true;
+                    if (Factory == null)
+                    {
+                        lock (lockFactory)
+                        {
+                            if (Factory == null)
+                            {
+                                _logger.LogInformation("Connection factory has recreated.");
+                                Factory = new ConnectionFactory() { HostName = hostname };
+                                Factory.AutomaticRecoveryEnabled = true;
+                            }
+                        }
+                    }
+                    if (Connection?.CloseReason != null)
+                    {
+                        lock (lockConnection)
+                        {
+                            if (Connection?.CloseReason != null)
+                            {
+                                _logger.LogInformation("Connection has recreated.");
+                                Connection = Factory.CreateConnection();
+                            }
+                        }
+                    }
+                    if (Channel?.CloseReason != null)
+                    {
+                        lock (lockChannel)
+                        {
+                            if (Channel?.CloseReason != null)
+                            {
+                                _logger.LogInformation("Connection factory has recreated.");
+                                Channel = Connection.CreateModel();
+                            }
+                        }
+                    }
+                    _logger.LogInformation("Try reconnect.");
                 }
-                if (Connection == null || Connection.CloseReason != null)
+                catch (RabbitMQ.Client.Exceptions.BrokerUnreachableException ex) 
                 {
-                    Console.WriteLine("!Создание (Connection)");
-                    Connection = Factory.CreateConnection();
+                    _logger.LogWarning(ex, "Error in Reconnect method");
                 }
-                if (Channel == null || Channel.CloseReason != null)
-                {
-                    Console.WriteLine("!Создание (Channel)");
-                    Channel = Connection.CreateModel();
-                }
-            }
-            catch (RabbitMQ.Client.Exceptions.BrokerUnreachableException) 
-            {
-                Console.WriteLine("catch BrokerUnreachableException (Reconnect)");
-                Reconnect();
-            }
+            });
         }
 
         /// <summary>
         /// A method that checks the creation of an exchange name earlier. 
         /// If the exchange name has not been created, then it is created.
         /// </summary>
-        private void CreateExchange(string nameExchange) 
+        private void InitExchange(string nameExchange) 
         {
-            var isResend = false;
-            lock (lockList) 
+            if (!NamesExchange.Contains(nameExchange))
             {
-                if (!NamesExchange.Contains(nameExchange))
+                lock (lockList)
                 {
-                    try
+                    if (!NamesExchange.Contains(nameExchange))
                     {
-                        Channel.ExchangeDeclare(exchange: nameExchange, type: ExchangeType.Fanout);
-                        NamesExchange.Add(nameExchange);
-                    }
-                    catch (RabbitMQ.Client.Exceptions.OperationInterruptedException)
-                    {
-                        Console.WriteLine("catch OperationInterruptedException (CreateExchange)");
-                        Reconnect();
-                        isResend = true;
+                        try
+                        {
+                            Channel.ExchangeDeclare(exchange: nameExchange, type: ExchangeType.Fanout);
+                            NamesExchange.Add(nameExchange);
+                            _logger.LogInformation($"An exchange with a new name \"{nameExchange}\" has been announced.");
+                        }
+                        catch (RabbitMQ.Client.Exceptions.OperationInterruptedException ex)
+                        {
+                            _logger.LogWarning(ex, "Error in InitExchange method");
+                            Thread.Sleep(20000);
+                            SendMessage(datаRMQ);
+                        }
                     }
                 }
-            }
-            if (isResend)
-            {
-                isResend = false;
-                ResendMessage(datаRMQ);
             }
         }
 
         public void SendMessage(DepartureDatаRMQModel data)
         {
-            var isResend = false;
-            lock (lockSend)
+            datаRMQ = data;
+            InitExchange(data.NameExchange);
+            try
             {
-                datаRMQ = data;
-                CreateExchange(data.NameExchange);
-                try
-                {
-                    Channel.BasicPublish(exchange: data.NameExchange,
-                                    routingKey: data.RoutingKey,
-                                    basicProperties: null,
-                                    body: JsonSerializer.SerializeToUtf8Bytes(data.Message));
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine("catch Exception Reconnect(); SendMessage(datаRMQ); (SendMessage) catch");
-                    Reconnect();
-                    isResend = true;
-                }
+                Channel.BasicPublish(exchange: data.NameExchange,
+                                routingKey: data.RoutingKey,
+                                basicProperties: null,
+                                body: JsonSerializer.SerializeToUtf8Bytes(data.Message));
+                _logger.LogInformation("Message has been sent.");
             }
-            if (isResend) 
+            catch (Exception ex)
             {
-                isResend = false;
-                ResendMessage(datаRMQ);
+                _logger.LogWarning(ex, "Error in SendMessage method");
+                Thread.Sleep(20000);
+                SendMessage(datаRMQ);
             }
-        }
-
-        private void ResendMessage(DepartureDatаRMQModel data) 
-        {
-            SendMessage(data);
         }
     }
 }
