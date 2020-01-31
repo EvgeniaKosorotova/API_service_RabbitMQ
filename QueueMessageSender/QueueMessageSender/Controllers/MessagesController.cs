@@ -32,7 +32,7 @@ namespace QueueMessageSender.Controllers
                 RoutingKey = model.Key,
                 Message = model.Message
             };
-            _logger.LogInformation($"Post {departureData.RoutingKey}");
+            _logger.LogInformation($"Post method. Exchange: {departureData.NameExchange}, routing key: {departureData.RoutingKey}, message: {departureData.Message}");
             _sender.SendMessage(departureData);
 
             return Ok();

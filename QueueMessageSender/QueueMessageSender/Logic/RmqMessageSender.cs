@@ -20,15 +20,13 @@ namespace QueueMessageSender.Logic
         private IModel Channel = null;
         private readonly List<string> NamesExchange = new List<string>();
         private readonly object lockList = new object();
-        private readonly object lockFactory = new object();
         private readonly object lockConnection = new object();
         private readonly object lockChannel = new object();
-        private readonly object lockConnect = new object();
         private DepartureDatаRMQModel datаRMQ;
         private readonly ILogger<RMQMessageSender> _logger;
         private readonly Policy retry = Policy
             .Handle<Exception> ()
-            .WaitAndRetry(3, retryAttempt => TimeSpan.FromSeconds(5));
+            .WaitAndRetry(5, retryAttempt => TimeSpan.FromSeconds(5));
 
         public RMQMessageSender(ILogger<RMQMessageSender> logger)
         {
@@ -54,50 +52,31 @@ namespace QueueMessageSender.Logic
             {
                 try
                 {
-                    if (Factory == null)
-                    {
-                        lock (lockFactory)
-                        {
-                            if (Factory == null)
-                            {
-                                _logger.LogInformation("Connection factory has recreated.");
-                                Channel?.Close();
-                                Channel = null;
-                                Connection?.Close();
-                                Connection = null;
-                                Factory = new ConnectionFactory() { HostName = hostname };
-                                Factory.AutomaticRecoveryEnabled = true;
-                                NamesExchange.Clear();
-                                _logger.LogInformation("!Connection factory has recreated.");
-                            }
-                        }
-                    }
-                    if (Connection == null || Connection?.CloseReason != null)
+                    if (Connection?.CloseReason != null)
                     {
                         lock (lockConnection)
                         {
-                            if (Connection == null || Connection?.CloseReason != null)
+                            if (Connection?.CloseReason != null)
                             {
                                 _logger.LogInformation("Connection has recreated.");
                                 Connection?.Close();
                                 Connection = Factory.CreateConnection();
-                                _logger.LogInformation("!Connection has recreated.");
                             }
                         }
                     }
-                    if (Channel == null || Channel?.CloseReason != null)
+                    if (Channel?.CloseReason != null)
                     {
                         lock (lockChannel)
                         {
-                            if (Channel == null || Channel?.CloseReason != null)
+                            if (Channel?.CloseReason != null)
                             {
-                                _logger.LogInformation("Connection factory has recreated.");
+                                _logger.LogInformation("Channel has recreated.");
                                 Channel?.Close();
                                 Channel = Connection.CreateModel();
-                                _logger.LogInformation("!Connection factory has recreated.");
                             }
                         }
                     }
+                    NamesExchange.Clear();
                     _logger.LogInformation("Try reconnect.");
                 }
                 catch (RabbitMQ.Client.Exceptions.BrokerUnreachableException ex) 
@@ -128,7 +107,6 @@ namespace QueueMessageSender.Logic
                         catch (RabbitMQ.Client.Exceptions.OperationInterruptedException ex)
                         {
                             _logger.LogWarning(ex, "Error in InitExchange method");
-                            Reconnect();
                             SendMessage(datаRMQ);
                         }
                     }
@@ -138,16 +116,6 @@ namespace QueueMessageSender.Logic
 
         public void SendMessage(DepartureDatаRMQModel data)
         {
-            if (Factory == null || Connection?.CloseReason != null || Channel?.CloseReason != null) 
-            {
-                lock (lockConnect)
-                {
-                    if (Factory == null || Connection?.CloseReason != null || Channel?.CloseReason != null)
-                    {
-                        Reconnect();
-                    }
-                }
-            }
             datаRMQ = data;
             InitExchange(data.NameExchange);
             try
@@ -156,7 +124,7 @@ namespace QueueMessageSender.Logic
                                     routingKey: data.RoutingKey,
                                     basicProperties: null,
                                     body: JsonSerializer.SerializeToUtf8Bytes(data.Message));
-                _logger.LogInformation($"Message has been sent. {data.RoutingKey}");
+                _logger.LogInformation($"Message has been sent. Exchange: {data.NameExchange}, routing key: {data.RoutingKey}, message: {data.Message}");
             }
             catch (Exception ex)
             {
