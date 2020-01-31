@@ -23,32 +23,28 @@ namespace QueueMessageSender.Logic
         private readonly object lockFactory = new object();
         private readonly object lockConnection = new object();
         private readonly object lockChannel = new object();
-        private readonly object lockInit = new object();
+        private readonly object lockConnect = new object();
         private DepartureDatаRMQModel datаRMQ;
         private readonly ILogger<RMQMessageSender> _logger;
         private readonly Policy retry = Policy
-            .Handle<RabbitMQ.Client.Exceptions.BrokerUnreachableException> ()
-            .WaitAndRetry(3, retryAttempt => TimeSpan.FromSeconds(15));
+            .Handle<Exception> ()
+            .WaitAndRetry(3, retryAttempt => TimeSpan.FromSeconds(5));
 
         public RMQMessageSender(ILogger<RMQMessageSender> logger)
         {
             _logger = logger;
             if (Factory == null || Connection?.CloseReason != null || Channel?.CloseReason != null)
             {
-                lock (lockInit) 
-                {
-                    if (Factory == null || Connection?.CloseReason != null || Channel?.CloseReason != null)
-                    {
-                        Factory = new ConnectionFactory() { HostName = hostname };
-                        Factory.AutomaticRecoveryEnabled = true;
-                        Connection = Factory.CreateConnection();
-                        Channel = Connection.CreateModel();
-                        _logger.LogInformation("Connection factory, connection, channel were created.");
+                Factory = new ConnectionFactory() { HostName = hostname };
+                Factory.AutomaticRecoveryEnabled = true;
+                Connection = Factory.CreateConnection();
+                Channel = Connection.CreateModel();
+                _logger.LogInformation("Connection factory, connection, channel were created.");
 
-                        Connection.ConnectionShutdown += Reconnect;
-                        Channel.ModelShutdown += Reconnect;
-                    }
-                }
+                Connection.ConnectionShutdown += Reconnect;
+                Channel.ModelShutdown += Reconnect;
+
+                Thread.Sleep(5000);
             }
         }
 
@@ -65,30 +61,40 @@ namespace QueueMessageSender.Logic
                             if (Factory == null)
                             {
                                 _logger.LogInformation("Connection factory has recreated.");
+                                Channel?.Close();
+                                Channel = null;
+                                Connection?.Close();
+                                Connection = null;
                                 Factory = new ConnectionFactory() { HostName = hostname };
                                 Factory.AutomaticRecoveryEnabled = true;
+                                NamesExchange.Clear();
+                                _logger.LogInformation("!Connection factory has recreated.");
                             }
                         }
                     }
-                    if (Connection?.CloseReason != null)
+                    if (Connection == null || Connection?.CloseReason != null)
                     {
                         lock (lockConnection)
                         {
-                            if (Connection?.CloseReason != null)
+                            if (Connection == null || Connection?.CloseReason != null)
                             {
                                 _logger.LogInformation("Connection has recreated.");
+                                Connection?.Close();
                                 Connection = Factory.CreateConnection();
+                                _logger.LogInformation("!Connection has recreated.");
                             }
                         }
                     }
-                    if (Channel?.CloseReason != null)
+                    if (Channel == null || Channel?.CloseReason != null)
                     {
                         lock (lockChannel)
                         {
-                            if (Channel?.CloseReason != null)
+                            if (Channel == null || Channel?.CloseReason != null)
                             {
                                 _logger.LogInformation("Connection factory has recreated.");
+                                Channel?.Close();
                                 Channel = Connection.CreateModel();
+                                _logger.LogInformation("!Connection factory has recreated.");
                             }
                         }
                     }
@@ -122,7 +128,7 @@ namespace QueueMessageSender.Logic
                         catch (RabbitMQ.Client.Exceptions.OperationInterruptedException ex)
                         {
                             _logger.LogWarning(ex, "Error in InitExchange method");
-                            Thread.Sleep(20000);
+                            Reconnect();
                             SendMessage(datаRMQ);
                         }
                     }
@@ -132,20 +138,30 @@ namespace QueueMessageSender.Logic
 
         public void SendMessage(DepartureDatаRMQModel data)
         {
+            if (Factory == null || Connection?.CloseReason != null || Channel?.CloseReason != null) 
+            {
+                lock (lockConnect)
+                {
+                    if (Factory == null || Connection?.CloseReason != null || Channel?.CloseReason != null)
+                    {
+                        Reconnect();
+                    }
+                }
+            }
             datаRMQ = data;
             InitExchange(data.NameExchange);
             try
             {
                 Channel.BasicPublish(exchange: data.NameExchange,
-                                routingKey: data.RoutingKey,
-                                basicProperties: null,
-                                body: JsonSerializer.SerializeToUtf8Bytes(data.Message));
-                _logger.LogInformation("Message has been sent.");
+                                    routingKey: data.RoutingKey,
+                                    basicProperties: null,
+                                    body: JsonSerializer.SerializeToUtf8Bytes(data.Message));
+                _logger.LogInformation($"Message has been sent. {data.RoutingKey}");
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error in SendMessage method");
-                Thread.Sleep(20000);
+                Reconnect();
                 SendMessage(datаRMQ);
             }
         }

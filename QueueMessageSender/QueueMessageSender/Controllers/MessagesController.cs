@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using NLog;
 using QueueMessageSender.Controllers.Models;
 using QueueMessageSender.Logic;
 using QueueMessageSender.Logic.Models;
@@ -10,11 +11,13 @@ namespace QueueMessageSender.Controllers
     [ApiController]
     public class MessagesController : ControllerBase
     {
+        private readonly ILogger<RMQMessageSender> _logger;
         private readonly IQueueMessageSender _sender;
 
-        public MessagesController(IQueueMessageSender sender)
+        public MessagesController(IQueueMessageSender sender, ILogger<RMQMessageSender> logger)
         {
             _sender = sender;
+            _logger = logger;
         }
 
         /// <summary>
@@ -29,6 +32,7 @@ namespace QueueMessageSender.Controllers
                 RoutingKey = model.Key,
                 Message = model.Message
             };
+            _logger.LogInformation($"Post {departureData.RoutingKey}");
             _sender.SendMessage(departureData);
 
             return Ok();
