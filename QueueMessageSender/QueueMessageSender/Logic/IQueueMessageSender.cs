@@ -1,4 +1,4 @@
-﻿using QueueMessageSender.Models;
+﻿using QueueMessageSender.Logic.Models;
 
 namespace QueueMessageSender.Logic
 {
@@ -7,6 +7,6 @@ namespace QueueMessageSender.Logic
     /// </summary>
     public interface IQueueMessageSender
     {
-        void SendMessage(DepartureData data);
+        void SendMessage(DepartureDatаRMQModel data);
     }
 }

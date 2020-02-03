@@ -1,4 +1,6 @@
-﻿using QueueMessageSender.Models;
+﻿using Microsoft.Extensions.Logging;
+using Polly;
+using QueueMessageSender.Logic.Models;
 using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
@@ -10,60 +12,126 @@ namespace QueueMessageSender.Logic
     /// <summary>
     /// Class to publish messages to the queue RabbitMQ.
     /// </summary>
-    public class RmqMessageSender : IQueueMessageSender
+    public class RMQMessageSender : IQueueMessageSender
     {
-        public RmqMessageSender()
+        private static readonly string hostname = "localhost";
+        private ConnectionFactory Factory = null;
+        private IConnection Connection = null;
+        private IModel Channel = null;
+        private readonly List<string> NamesExchange = new List<string>();
+        private readonly object lockList = new object();
+        private readonly object lockConnection = new object();
+        private readonly object lockChannel = new object();
+        private DepartureDatаRMQModel datаRMQ;
+        private readonly ILogger<RMQMessageSender> _logger;
+        private readonly Policy retry = Policy
+            .Handle<Exception> ()
+            .WaitAndRetry(5, retryAttempt => TimeSpan.FromSeconds(5));
+
+        public RMQMessageSender(ILogger<RMQMessageSender> logger)
         {
-            CreateConnection();
+            _logger = logger;
+            if (Factory == null || Connection?.CloseReason != null || Channel?.CloseReason != null)
+            {
+                Factory = new ConnectionFactory() { HostName = hostname };
+                Factory.AutomaticRecoveryEnabled = true;
+                Connection = Factory.CreateConnection();
+                Channel = Connection.CreateModel();
+                _logger.LogInformation("Connection factory, connection, channel were created.");
+
+                Connection.ConnectionShutdown += Reconnect;
+                Channel.ModelShutdown += Reconnect;
+
+                Thread.Sleep(5000);
+            }
         }
 
-        private static IModel _channel;
-        private static IConnection _connection;
-        private static ConnectionFactory _factory;
-        private static readonly object _padlock = new object();
-        private static List<string> _namesExchange = new List<string>();
-
-        private void CreateConnection()
+        private void Reconnect(object sender = null, ShutdownEventArgs e = null)
         {
-            if (_factory == null)
+            retry.Execute(() =>
             {
-                lock (_padlock)
+                try
                 {
-                    if (_factory == null)
+                    if (Connection?.CloseReason != null)
                     {
-                        _factory = new ConnectionFactory() { HostName = "localhost" };
-                        _factory.AutomaticRecoveryEnabled = true;
-                        _connection = _factory.CreateConnection();
-                        _channel = _connection.CreateModel();
-                        Timer timer = new Timer(CreateChannel, 0, Convert.ToInt32(_channel.ContinuationTimeout.TotalMilliseconds), Convert.ToInt32(_channel.ContinuationTimeout.TotalMilliseconds));
+                        lock (lockConnection)
+                        {
+                            if (Connection?.CloseReason != null)
+                            {
+                                _logger.LogInformation("Connection has recreated.");
+                                Connection?.Close();
+                                Connection = Factory.CreateConnection();
+                            }
+                        }
+                    }
+                    if (Channel?.CloseReason != null)
+                    {
+                        lock (lockChannel)
+                        {
+                            if (Channel?.CloseReason != null)
+                            {
+                                _logger.LogInformation("Channel has recreated.");
+                                Channel?.Close();
+                                Channel = Connection.CreateModel();
+                            }
+                        }
+                    }
+                    NamesExchange.Clear();
+                    _logger.LogInformation("Try reconnect.");
+                }
+                catch (RabbitMQ.Client.Exceptions.BrokerUnreachableException ex) 
+                {
+                    _logger.LogWarning(ex, "Error in Reconnect method");
+                }
+            });
+        }
+
+        /// <summary>
+        /// A method that checks the creation of an exchange name earlier. 
+        /// If the exchange name has not been created, then it is created.
+        /// </summary>
+        private void InitExchange(string nameExchange) 
+        {
+            if (!NamesExchange.Contains(nameExchange))
+            {
+                lock (lockList)
+                {
+                    if (!NamesExchange.Contains(nameExchange))
+                    {
+                        try
+                        {
+                            Channel.ExchangeDeclare(exchange: nameExchange, type: ExchangeType.Fanout);
+                            NamesExchange.Add(nameExchange);
+                            _logger.LogInformation($"An exchange with a new name \"{nameExchange}\" has been announced.");
+                        }
+                        catch (RabbitMQ.Client.Exceptions.OperationInterruptedException ex)
+                        {
+                            _logger.LogWarning(ex, "Error in InitExchange method");
+                            SendMessage(datаRMQ);
+                        }
                     }
                 }
             }
         }
 
-        private static void CreateChannel(object status)
+        public void SendMessage(DepartureDatаRMQModel data)
         {
-            _channel.Close();
-            _channel = _connection.CreateModel();
-        }
-
-        public void SendMessage(DepartureData data)
-        {
-            if (_factory == null || _connection == null || _channel == null)
+            datаRMQ = data;
+            InitExchange(data.NameExchange);
+            try
             {
-                CreateConnection();
+                Channel.BasicPublish(exchange: data.NameExchange,
+                                    routingKey: data.RoutingKey,
+                                    basicProperties: null,
+                                    body: JsonSerializer.SerializeToUtf8Bytes(data.Message));
+                _logger.LogInformation($"Message has been sent. Exchange: {data.NameExchange}, routing key: {data.RoutingKey}, message: {data.Message}");
             }
-
-            if (!_namesExchange.Contains(data.NameExchange))
+            catch (Exception ex)
             {
-                _channel.ExchangeDeclare(exchange: data.NameExchange, type: ExchangeType.Fanout);
-                _namesExchange.Add(data.NameExchange);
+                _logger.LogWarning(ex, "Error in SendMessage method");
+                Reconnect();
+                SendMessage(datаRMQ);
             }
-
-            _channel.BasicPublish(exchange: data.NameExchange,
-                                 routingKey: data.RoutingKey,
-                                 basicProperties: null,
-                                 body: JsonSerializer.SerializeToUtf8Bytes(data.Message));
         }
     }
 }
