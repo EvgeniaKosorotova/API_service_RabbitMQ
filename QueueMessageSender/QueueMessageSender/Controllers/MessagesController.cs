@@ -1,12 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using NLog;
 using QueueMessageSender.Controllers.Models;
 using QueueMessageSender.Logic;
 using QueueMessageSender.Logic.Models;
 
 namespace QueueMessageSender.Controllers
 {
+    [Authorize(AuthenticationSchemes = "JwtBearer")]
     [Route("[controller]")]
     [ApiController]
     public class MessagesController : ControllerBase
