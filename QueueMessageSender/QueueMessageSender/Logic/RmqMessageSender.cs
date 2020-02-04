@@ -15,7 +15,7 @@ namespace QueueMessageSender.Logic
     public class RMQMessageSender : IQueueMessageSender
     {
         private static readonly string hostname = "localhost";
-        private ConnectionFactory Factory = null;
+        private readonly ConnectionFactory Factory = null;
         private IConnection Connection = null;
         private IModel Channel = null;
         private readonly List<string> NamesExchange = new List<string>();

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using QueueMessageSender.Controllers.Models;
 using System;
@@ -14,29 +15,35 @@ namespace QueueMessageSender.Controllers
     [ApiController]
     public class AuthJWTController : ControllerBase
     {
-        private IConfiguration _configuration;
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<AuthJWTController> _logger;
         //private readonly SignInManager<IdentityUser> _signInManager;
 
-        public AuthJWTController(IConfiguration configuration
-            //, SignInManager<IdentityUser> signInManager
-            )
+        public AuthJWTController(IConfiguration configuration, ILogger<AuthJWTController> logger) //, SignInManager<IdentityUser> signInManager
         {
             _configuration = configuration;
+            _logger = logger;
             //_signInManager = signInManager;
         }
 
+        /// <summary>
+        /// A post method that checks the accepted credentials.
+        /// If successful, creates a token for authentication.
+        /// </summary>
         [AllowAnonymous]
         [HttpPost]
-        public IActionResult Login(LoginModel login)
+        public IActionResult Login(AuthenticationModel login)
         {
+            _logger.LogInformation($"Login method. Username: {login.Username}, Password: {login.Password}");
             //var result = await _signInManager.PasswordSignInAsync(login.Username, login.Password, false, false);
             var username = _configuration.GetValue<string>("Settings:Credentials:UserName");
             var password = _configuration.GetValue<string>("Settings:Credentials:Password");
 
             if (!(username == login.Username && password == login.Password)) //|| !result.Succeeded
             {
+                _logger.LogInformation($"BadRequest. Username: {login.Username}, Password: {login.Password}");
                 return BadRequest(
-                    new LoginResultModel
+                    new AuthenticationResultModel
                     {
                         Successful = false,
                         Error = "Username and password are invalid."
@@ -47,9 +54,8 @@ namespace QueueMessageSender.Controllers
             {
                 new Claim(ClaimTypes.Name, login.Username)
             };
-
-            var JwtSecurityKey = Encoding.UTF8.GetBytes(_configuration.GetValue<string>("Settings:JWT:SecurityKey"));
-            var key = new SymmetricSecurityKey(JwtSecurityKey);
+            var jwtSecurityKey = Encoding.UTF8.GetBytes(_configuration.GetValue<string>("Settings:JWT:SecurityKey"));
+            var key = new SymmetricSecurityKey(jwtSecurityKey);
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var expiryMinutes = DateTime.Now.AddMinutes(_configuration.GetValue<int>("Settings:JWT:ExpiryInMinutes"));
 
@@ -61,8 +67,9 @@ namespace QueueMessageSender.Controllers
                 signingCredentials: creds
                 );
 
+            _logger.LogInformation($"GoodRequest. Username: {login.Username}, Password: {login.Password}, Token: {token}");
             return Ok(
-                new LoginResultModel
+                new AuthenticationResultModel
                 {
                     Successful = true,
                     Token = new JwtSecurityTokenHandler().WriteToken(token)

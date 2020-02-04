@@ -12,10 +12,10 @@ namespace QueueMessageSender.Controllers
     [ApiController]
     public class MessagesController : ControllerBase
     {
-        private readonly ILogger<RMQMessageSender> _logger;
+        private readonly ILogger<MessagesController> _logger;
         private readonly IQueueMessageSender _sender;
 
-        public MessagesController(IQueueMessageSender sender, ILogger<RMQMessageSender> logger)
+        public MessagesController(IQueueMessageSender sender, ILogger<MessagesController> logger)
         {
             _sender = sender;
             _logger = logger;

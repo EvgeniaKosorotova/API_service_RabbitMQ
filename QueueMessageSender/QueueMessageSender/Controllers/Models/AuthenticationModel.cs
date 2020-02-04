@@ -2,7 +2,10 @@
 
 namespace QueueMessageSender.Controllers.Models
 {
-    public class LoginModel
+    /// <summary>
+    /// Credential model
+    /// </summary>
+    public class AuthenticationModel
     {
         [Required]
         public string Username { get; set; }
