@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -13,7 +14,7 @@ using System.Text;
 
 namespace QueueMessageSender.Controllers
 {
-    [Authorize(AuthenticationSchemes = "JwtBearer")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("[controller]")]
     [ApiController]
     public class MessagesController : ControllerBase
@@ -35,8 +36,7 @@ namespace QueueMessageSender.Controllers
         /// If successful, creates a token for authentication.
         /// </summary>
         [AllowAnonymous]
-        [Route("login")]
-        [HttpPost]
+        [HttpPost("login")]
         public IActionResult Login(AuthenticationModel login)
         {
             _logger.LogInformation($"Login method. Username: {login.Username}, Password: {login.Password}");
@@ -84,8 +84,7 @@ namespace QueueMessageSender.Controllers
         /// <summary>
         /// A method that accepts JSON with message information and sends the message in exchange.
         /// </summary>
-        [Route("send")]
-        [HttpPost]
+        [HttpPost("send")]
         public IActionResult Send(ReceivedDataModel model)
         {
             var departureData = new DepartureDatаRMQModel
