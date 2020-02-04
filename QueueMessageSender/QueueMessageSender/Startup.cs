@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -7,7 +6,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using QueueMessageSender.Logic;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace QueueMessageSender
 {
@@ -25,7 +23,6 @@ namespace QueueMessageSender
             services.AddMvcCore().AddDataAnnotations();
             services.AddControllers();
             services.AddSingleton<IQueueMessageSender, RMQMessageSender>();
-
             services.AddAuthentication()
                .AddJwtBearer("JwtBearer", jwtBearerOptions =>
                {
@@ -35,9 +32,9 @@ namespace QueueMessageSender
                        ValidateAudience = true,
                        ValidateLifetime = true,
                        ValidateIssuerSigningKey = true,
-                       ValidIssuer = Configuration["JwtIssuer"],
-                       ValidAudience = Configuration["JwtAudience"],
-                       IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtSecurityKey"]))
+                       ValidIssuer = Configuration.GetValue<string>("Settings:JWT:Issuer"),
+                       ValidAudience = Configuration.GetValue<string>("Settings:JWT:Audience"),
+                       IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration.GetValue<string>("Settings:JWT:SecurityKey")))
                    };
                });
         }
@@ -49,6 +46,7 @@ namespace QueueMessageSender
                 app.UseDeveloperExceptionPage();
             }
             app.UseRouting();
+            app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

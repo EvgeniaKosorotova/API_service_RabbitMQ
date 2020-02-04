@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -8,7 +7,6 @@ using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace QueueMessageSender.Controllers
 {
@@ -16,29 +14,32 @@ namespace QueueMessageSender.Controllers
     [ApiController]
     public class AuthJWTController : ControllerBase
     {
-        private readonly IConfiguration _configuration;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private IConfiguration _configuration;
+        //private readonly SignInManager<IdentityUser> _signInManager;
 
-        public AuthJWTController(IConfiguration configuration,
-                                SignInManager<IdentityUser> signInManager)
+        public AuthJWTController(IConfiguration configuration
+            //, SignInManager<IdentityUser> signInManager
+            )
         {
             _configuration = configuration;
-            _signInManager = signInManager;
+            //_signInManager = signInManager;
         }
 
-        //[AllowAnonymous]
+        [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> Login(LoginModel login)
+        public IActionResult Login(LoginModel login)
         {
-            var result = await _signInManager.PasswordSignInAsync(login.Username, login.Password, false, false);
+            //var result = await _signInManager.PasswordSignInAsync(login.Username, login.Password, false, false);
+            var username = _configuration.GetValue<string>("Settings:Credentials:UserName");
+            var password = _configuration.GetValue<string>("Settings:Credentials:Password");
 
-            if (!result.Succeeded) 
+            if (!(username == login.Username && password == login.Password)) //|| !result.Succeeded
             {
                 return BadRequest(
-                    new LoginResultModel 
-                    { 
-                        Successful = false, 
-                        Error = "Username and password are invalid." 
+                    new LoginResultModel
+                    {
+                        Successful = false,
+                        Error = "Username and password are invalid."
                     });
             }
 
@@ -47,24 +48,24 @@ namespace QueueMessageSender.Controllers
                 new Claim(ClaimTypes.Name, login.Username)
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSecurityKey"]));
+            var JwtSecurityKey = Encoding.UTF8.GetBytes(_configuration.GetValue<string>("Settings:JWT:SecurityKey"));
+            var key = new SymmetricSecurityKey(JwtSecurityKey);
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expiryMinutes = DateTime.Now.AddMinutes(Convert.ToInt32(_configuration["JwtExpiryInMinutes"]));
-            //var expiryDays = DateTime.Now.AddDays(Convert.ToInt32(_configuration["JwtExpiryInDays"]));
+            var expiryMinutes = DateTime.Now.AddMinutes(_configuration.GetValue<int>("Settings:JWT:ExpiryInMinutes"));
 
             var token = new JwtSecurityToken(
-                _configuration["JwtIssuer"],
-                _configuration["JwtAudience"],
+                _configuration.GetValue<string>("Settings:JWT:Issuer"),
+                _configuration.GetValue<string>("Settings:JWT:Audience"),
                 claims,
                 expires: expiryMinutes,
                 signingCredentials: creds
                 );
 
             return Ok(
-                new LoginResultModel 
-                { 
-                    Successful = true, 
-                    Token = new JwtSecurityTokenHandler().WriteToken(token) 
+                new LoginResultModel
+                {
+                    Successful = true,
+                    Token = new JwtSecurityTokenHandler().WriteToken(token)
                 });
         }
     }
