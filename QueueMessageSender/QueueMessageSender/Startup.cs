@@ -12,9 +12,12 @@ namespace QueueMessageSender
 {
     public class Startup
     {
+        private readonly AuthenticationJWT _authenticationJWT;
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            _authenticationJWT = AuthenticationJWT.Instance;
+            _authenticationJWT.Configuration = configuration;
         }
 
         public IConfiguration Configuration { get; }
@@ -24,6 +27,7 @@ namespace QueueMessageSender
             services.AddMvcCore().AddDataAnnotations();
             services.AddControllers();
             services.AddSingleton<IQueueMessageSender, RMQMessageSender>();
+            services.AddSingleton<IUserManager, UserManager>();
             services.AddAuthentication(options => 
                 {
                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

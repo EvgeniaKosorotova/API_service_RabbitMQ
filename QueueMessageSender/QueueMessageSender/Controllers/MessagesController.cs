@@ -3,14 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 using QueueMessageSender.Controllers.Models;
 using QueueMessageSender.Logic;
 using QueueMessageSender.Logic.Models;
-using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace QueueMessageSender.Controllers
 {
@@ -19,17 +14,21 @@ namespace QueueMessageSender.Controllers
     [ApiController]
     public class MessagesController : ControllerBase
     {
-        private readonly IConfiguration _configuration;
         private readonly ILogger<MessagesController> _logger;
         private readonly IQueueMessageSender _sender;
+        private readonly IUserManager _userManagement;
+        private readonly AuthenticationJWT _authenticationJWT;
 
-        public MessagesController(IConfiguration configuration, IQueueMessageSender sender, ILogger<MessagesController> logger)
+        public MessagesController(IConfiguration configuration,
+                                  ILogger<MessagesController> logger,
+                                  IQueueMessageSender sender,
+                                  IUserManager userManagement)
         {
-            _configuration = configuration;
-            _sender = sender;
             _logger = logger;
+            _sender = sender;
+            _userManagement = userManagement;
+            _authenticationJWT = AuthenticationJWT.Instance;
         }
-
 
         /// <summary>
         /// A post method that checks the accepted credentials.
@@ -37,16 +36,16 @@ namespace QueueMessageSender.Controllers
         /// </summary>
         [AllowAnonymous]
         [HttpPost("login")]
-        public IActionResult Login(AuthenticationModel login)
+        public IActionResult Login(AuthenticationModel authData)
         {
-            _logger.LogInformation($"Login method. Username: {login.Username}, Password: {login.Password}");
+            UserModel user = _userManagement.Read(authData.Username);
+            _logger.LogInformation($"Login method. Username: {authData.Username}, Password: {authData.Password}");
             //var result = await _signInManager.PasswordSignInAsync(login.Username, login.Password, false, false);
-            var username = _configuration.GetValue<string>("Settings:Credentials:UserName");
-            var password = _configuration.GetValue<string>("Settings:Credentials:Password");
 
-            if (!(username == login.Username && password == login.Password)) //|| !result.Succeeded
+            if (!(user != null && user.Username == authData.Username && user.Password == authData.Password)) //|| !result.Succeeded
             {
-                _logger.LogInformation($"BadRequest. Username: {login.Username}, Password: {login.Password}");
+                _logger.LogInformation($"BadRequest: Username and password are invalid. Username: {authData.Username}, Password: {authData.Password}");
+                
                 return BadRequest(
                     new AuthenticationResultModel
                     {
@@ -55,30 +54,28 @@ namespace QueueMessageSender.Controllers
                     });
             }
 
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.Name, login.Username)
-            };
-            var jwtSecurityKey = Encoding.UTF8.GetBytes(_configuration.GetValue<string>("Settings:JWT:SecurityKey"));
-            var key = new SymmetricSecurityKey(jwtSecurityKey);
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expiryMinutes = DateTime.Now.AddMinutes(_configuration.GetValue<int>("Settings:JWT:ExpiryInMinutes"));
+            return CreateTokens(user);
+        }
 
-            var token = new JwtSecurityToken(
-                _configuration.GetValue<string>("Settings:JWT:Issuer"),
-                _configuration.GetValue<string>("Settings:JWT:Audience"),
-                claims,
-                expires: expiryMinutes,
-                signingCredentials: creds
-                );
-            var securityToken = new JwtSecurityTokenHandler().WriteToken(token);
-            _logger.LogInformation($"GoodRequest. Username: {login.Username}, Password: {login.Password}, Token: {securityToken}");
-            return Ok(
-                new AuthenticationResultModel
-                {
-                    Successful = true,
-                    Token = securityToken
-                });
+        /// <summary>
+        /// Method of updating access tokens and refresh.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpPost("refresh")]
+        public IActionResult Refresh(string oldRefreshToken)
+        {
+            UserModel user = _userManagement.ReadByRefreshToken(oldRefreshToken);
+            if (user != null) 
+            {
+                return CreateTokens(user);
+            }
+
+            return BadRequest(
+                    new AuthenticationResultModel
+                    {
+                        Successful = false,
+                        Error = "Token is invalid."
+                    });
         }
 
         /// <summary>
@@ -97,6 +94,38 @@ namespace QueueMessageSender.Controllers
             _sender.SendMessage(departureData);
 
             return Ok();
+        }
+
+        /// <summary>
+        /// Token creation method.
+        /// </summary>
+        private IActionResult CreateTokens(UserModel user) 
+        {
+            var tokens = _authenticationJWT.CreateTokens(user.Username);
+            if (tokens.TryGetValue("accessToken", out string accessToken) && tokens.TryGetValue("refreshToken", out string refreshToken))
+            {
+                _userManagement.Update(user.Username, accessToken, refreshToken);
+                _logger.LogInformation($"GoodRequest. Username: {user.Username}, Password: {user.Password}, Access token: {accessToken}, Refresh token: {refreshToken}");
+                
+                return Ok(
+                    new AuthenticationResultModel
+                    {
+                        Successful = true,
+                        AccessToken = accessToken,
+                        RefreshToken = refreshToken
+                    });
+            }
+            else
+            {
+                _logger.LogInformation($"BadRequest: Tokens have not been created. Username: {user.Username}, Password: {user.Password}");
+                
+                return BadRequest(
+                    new AuthenticationResultModel
+                    {
+                        Successful = false,
+                        Error = "Tokens have not been created."
+                    });
+            }
         }
     }
 }
