@@ -10,6 +10,7 @@ namespace QueueMessageSender.Logic
     public class UserManager : IUserManager
     {
         private readonly List<UserModel> users = new List<UserModel>();
+        private readonly string defaultRefreshToken = ""; 
 
         public UserManager()
         {
@@ -24,7 +25,7 @@ namespace QueueMessageSender.Logic
                 {
                     Username = username,
                     Password = password,
-                    RefreshToken = ""
+                    RefreshToken = defaultRefreshToken
                 });
                 return true;
             }
@@ -43,7 +44,7 @@ namespace QueueMessageSender.Logic
 
         public UserModel ReadByRefreshToken(string token)
         {
-            if (token != null)
+            if (token != null && token != defaultRefreshToken)
             {
                 return users.Find(u => u.RefreshToken.Contains(token));
             }
