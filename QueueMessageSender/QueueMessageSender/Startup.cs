@@ -27,7 +27,6 @@ namespace QueueMessageSender
             services.AddMvcCore().AddDataAnnotations();
             services.AddControllers();
             services.AddSingleton<IQueueMessageSender, RMQMessageSender>();
-            services.AddSingleton<IUserManager, UserManager>();
             services.AddAuthentication(options => 
                 {
                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

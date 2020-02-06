@@ -52,13 +52,13 @@ namespace QueueMessageSender.Logic
             var jwtSecurityKey = Encoding.UTF8.GetBytes(_configuration.GetValue<string>("Settings:JWT:SecurityKey"));
             var key = new SymmetricSecurityKey(jwtSecurityKey);
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.Now.AddMinutes(_configuration.GetValue<int>("Settings:JWT:AccessToken:ExpiryInMinutes"));
+            var expires = DateTime.UtcNow.AddMinutes(_configuration.GetValue<int>("Settings:JWT:AccessToken:ExpiryInMinutes"));
 
             var accessToken = new JwtSecurityToken(
                 _configuration.GetValue<string>("Settings:JWT:Issuer"),
                 _configuration.GetValue<string>("Settings:JWT:Audience"),
                 claims,
-                notBefore: DateTime.Now,
+                notBefore: DateTime.UtcNow,
                 expires: expires,
                 signingCredentials: creds
                 );

@@ -16,18 +16,16 @@ namespace QueueMessageSender.Controllers
     {
         private readonly ILogger<MessagesController> _logger;
         private readonly IQueueMessageSender _sender;
-        private readonly IUserManager _userManagement;
+        private readonly UserManager _userManagement;
         private readonly AuthenticationJWT _authenticationJWT;
 
-        public MessagesController(IConfiguration configuration,
-                                  ILogger<MessagesController> logger,
-                                  IQueueMessageSender sender,
-                                  IUserManager userManagement)
+        public MessagesController(ILogger<MessagesController> logger,
+                                  IQueueMessageSender sender)
         {
             _logger = logger;
             _sender = sender;
-            _userManagement = userManagement;
             _authenticationJWT = AuthenticationJWT.Instance;
+            _userManagement = UserManager.Instance;
         }
 
         /// <summary>

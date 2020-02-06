@@ -7,11 +7,21 @@ namespace QueueMessageSender.Logic
     /// <summary>
     /// Class to manage user list.
     /// </summary>
-    public class UserManager : IUserManager
+    public class UserManager
     {
+        private static UserManager _instance = null;
         private readonly List<UserModel> users = new List<UserModel>();
-        private readonly string defaultRefreshToken = ""; 
+        private readonly string defaultRefreshToken = "";
 
+        public static UserManager Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    _instance = new UserManager();
+                return _instance;
+            }
+        }
         public UserManager()
         {
             Create("admin", "adminPassword");
