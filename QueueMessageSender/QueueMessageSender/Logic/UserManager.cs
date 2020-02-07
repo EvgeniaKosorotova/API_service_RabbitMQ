@@ -1,78 +1,93 @@
-﻿using QueueMessageSender.Logic.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using QueueMessageSender.Logic.Models;
 using System;
-using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace QueueMessageSender.Logic
 {
     /// <summary>
     /// Class to manage user list.
     /// </summary>
-    public class UserManager
+    public class UserManager : IUserManager
     {
-        private static UserManager _instance = null;
-        private readonly List<UserModel> users = new List<UserModel>();
+        private static UserContext db;
         private readonly string defaultRefreshToken = "";
+        private static UserManager _instance;
 
         public static UserManager Instance
         {
             get
             {
-                if (_instance == null)
+                if (_instance == null) 
+                {
                     _instance = new UserManager();
+                }
                 return _instance;
             }
         }
-        public UserManager()
+
+        public UserContext Context
         {
-            Create("admin", "adminPassword");
+            set => db = value;
         }
 
-        public bool Create(string username, string password)
+        private UserManager(){}
+
+        public async Task<bool> CreateAsync(string username, string password)
         {
-            if (!users.Exists(u => u.Username.Contains(username))) 
+            await db.Users.AddAsync(new UserModel
             {
-                users.Add(new UserModel 
-                {
-                    Username = username,
-                    Password = password,
-                    RefreshToken = defaultRefreshToken
-                });
-                return true;
+                Username = username,
+                Password = password,
+                RefreshToken = defaultRefreshToken
+            });
+            return await SaveAsync();
+        }
+
+        public async Task<bool> DeleteAsync(string username)
+        {
+            UserModel user = await db.Users.FirstOrDefaultAsync(u => u.Username == username);
+            if (user != null)
+            {
+                db.Users.Remove(user);
             }
-            return false;
+            return await SaveAsync();
         }
 
-        public bool Delete(string username)
+        public async Task<UserModel> GetAsync(string username = null, string token = null)
         {
-            return users.Remove(users.Find(u => u.Username.Contains(username)));
-        }
-
-        public UserModel Read(string username)
-        {
-            return users.Find(u => u.Username.Contains(username));
-        }
-
-        public UserModel ReadByRefreshToken(string token)
-        {
-            if (token != null && token != defaultRefreshToken)
+            if (username != null) 
+                return await db.Users.FirstOrDefaultAsync(u => u.Username == username);
+            if (token != null) 
             {
-                return users.Find(u => u.RefreshToken.Contains(token));
+                var user = (from u in db.Users.AsQueryable()
+                             where u.RefreshToken == token
+                             select u).SingleOrDefault<UserModel>();
+                //var user = await db.Users.FirstOrDefaultAsync(u => u.RefreshToken == token);
+                Console.WriteLine($"{db.Users.FirstOrDefault().Username}, {db.Users.FirstOrDefault().Password}, {db.Users.FirstOrDefault().RefreshToken}");
+                return user;
             }
-            else
-            {
-                return null;
-            }
+                //return await db.Users.FirstOrDefaultAsync(u => u.RefreshToken == token);
+            return null;
         }
 
-        public bool Update(string username, string accessToken, string refreshToken)
+        public async Task<bool> UpdateTokenAsync(string username, string refreshToken)
         {
-            if (users.Exists(u => u.Username.Contains(username)))
+            UserModel user = await db.Users.FirstOrDefaultAsync(u => u.Username == username);
+            if (user != null && refreshToken != defaultRefreshToken)
             {
-                users.FindAll(u => u.Username == username)
-                    .ForEach(x => 
-                    {
-                        x.RefreshToken = refreshToken;
-                    });
+                var entity = db.Users.Attach(user);
+                entity.State = EntityState.Modified;
+                user.RefreshToken = refreshToken;
+            }
+            return await SaveAsync();
+        }
+
+        public async Task<bool> SaveAsync()
+        {
+            if (await db.SaveChangesAsync() > 0) 
+            {
                 return true;
             }
             return false;
