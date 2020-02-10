@@ -9,7 +9,7 @@ using QueueMessageSender.Logic;
 namespace QueueMessageSender.Migrations
 {
     [DbContext(typeof(UserContext))]
-    [Migration("20200207132033_InitialCreate")]
+    [Migration("20200210105650_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -22,8 +22,10 @@ namespace QueueMessageSender.Migrations
 
             modelBuilder.Entity("QueueMessageSender.Logic.Models.UserModel", b =>
                 {
-                    b.Property<string>("Username")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("Password")
                         .HasColumnType("nvarchar(max)");
@@ -31,7 +33,10 @@ namespace QueueMessageSender.Migrations
                     b.Property<string>("RefreshToken")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Username");
+                    b.Property<string>("Username")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
 
                     b.ToTable("Users");
                 });

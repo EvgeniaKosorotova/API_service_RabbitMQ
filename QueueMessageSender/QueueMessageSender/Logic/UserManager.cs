@@ -43,22 +43,19 @@ namespace QueueMessageSender.Logic
         public async Task<UserModel> GetAsync(string username = null, string token = null)
         {
             if (username != null) 
-                return await db.Users.FirstOrDefaultAsync(u => u.Username == username);
+                return await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username));
             if (token != null) 
             {
                 var user = await db.Users.FirstOrDefaultAsync(u=>u.RefreshToken.Equals(token));
-
-                //var user = await db.Users.FirstOrDefaultAsync(u => u.RefreshToken == token);
                 Console.WriteLine($"{db.Users.FirstOrDefault().Username}, {db.Users.FirstOrDefault().Password}, {db.Users.FirstOrDefault().RefreshToken}");
                 return user;
             }
-                //return await db.Users.FirstOrDefaultAsync(u => u.RefreshToken == token);
             return null;
         }
 
         public async Task<bool> UpdateTokenAsync(string username, string refreshToken)
         {
-            UserModel user = await db.Users.FirstOrDefaultAsync(u => u.Username == username);
+            UserModel user = await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username));
             if (user != null && refreshToken != defaultRefreshToken)
             {
                 var entity = db.Users.Attach(user);

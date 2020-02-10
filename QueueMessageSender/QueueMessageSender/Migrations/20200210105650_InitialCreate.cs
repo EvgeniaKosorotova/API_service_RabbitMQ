@@ -10,13 +10,15 @@ namespace QueueMessageSender.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Username = table.Column<string>(nullable: false),
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Username = table.Column<string>(nullable: true),
                     Password = table.Column<string>(nullable: true),
                     RefreshToken = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.Username);
+                    table.PrimaryKey("PK_Users", x => x.Id);
                 });
         }
 

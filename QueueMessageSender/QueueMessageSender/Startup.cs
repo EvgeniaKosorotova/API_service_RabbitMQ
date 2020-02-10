@@ -13,12 +13,9 @@ namespace QueueMessageSender
 {
     public class Startup
     {
-        private readonly AuthenticationJWT _authenticationJWT;
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            _authenticationJWT = AuthenticationJWT.Instance;
-            _authenticationJWT.Configuration = configuration;
         }
 
         public IConfiguration Configuration { get; }
@@ -30,8 +27,10 @@ namespace QueueMessageSender
             services.AddSingleton<IQueueMessageSender, RMQMessageSender>();
             services.AddSingleton<AuthenticationJWT>();
             services.AddScoped<IUserManager, UserManager>();
-            string connection = Configuration.GetConnectionString("DefaultConnection");
-            services.AddDbContext<UserContext>(options => options.UseSqlServer(connection));
+            services.AddDbContext<UserContext>(options =>
+                {
+                    options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+                });
             services.AddAuthentication(options => 
                 {
                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

@@ -19,16 +19,21 @@ namespace QueueMessageSender.Migrations
 
             modelBuilder.Entity("QueueMessageSender.Logic.Models.UserModel", b =>
                 {
-                    b.Property<string>("Username")
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("Password")
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RefreshToken")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Username");
+                    b.Property<string>("Username")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
 
                     b.ToTable("Users");
                 });
