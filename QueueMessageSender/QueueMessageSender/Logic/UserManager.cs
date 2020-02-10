@@ -73,10 +73,10 @@ namespace QueueMessageSender.Logic
             return false;
         }
 
-        public string GetHashPassword(string password) 
+        public string GetHash(string str) 
         {
             return Convert.ToBase64String(KeyDerivation.Pbkdf2(
-            password: password,
+            password: str,
             salt: new byte[16],
             prf: KeyDerivationPrf.HMACSHA256,
             iterationCount: 10000,

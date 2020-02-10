@@ -33,7 +33,7 @@ namespace QueueMessageSender.Controllers
         public IActionResult Login(AuthenticationModel authData)
         {
             UserModel user = _userManager.GetAsync(username: authData.Username).Result;
-            if (!(user != null && user.Username == authData.Username && user.Password == _userManager.GetHashPassword(authData.Password)))
+            if (!(user != null && user.Username == authData.Username && user.Password == _userManager.GetHash(authData.Password)))
             {
                 return BadRequest(
                     new AuthenticationResultModel
