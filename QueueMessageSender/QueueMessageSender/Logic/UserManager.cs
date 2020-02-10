@@ -46,8 +46,7 @@ namespace QueueMessageSender.Logic
                 return await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username));
             if (token != null) 
             {
-                var user = await db.Users.FirstOrDefaultAsync(u=>u.RefreshToken.Equals(token));
-                Console.WriteLine($"{db.Users.FirstOrDefault().Username}, {db.Users.FirstOrDefault().Password}, {db.Users.FirstOrDefault().RefreshToken}");
+                var user = await db.Users.FirstOrDefaultAsync(u => u.RefreshToken.Equals(token));
                 return user;
             }
             return null;

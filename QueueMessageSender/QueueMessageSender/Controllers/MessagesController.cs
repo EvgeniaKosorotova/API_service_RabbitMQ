@@ -11,6 +11,7 @@ namespace QueueMessageSender.Controllers
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("[controller]")]
     [ApiController]
+    [Produces("application/json")]
     public class MessagesController : ControllerBase
     {
         private readonly ILogger<MessagesController> _logger;
@@ -26,6 +27,7 @@ namespace QueueMessageSender.Controllers
         /// <summary>
         /// A method that accepts JSON with message information and sends the message in exchange.
         /// </summary>
+        [HttpPost]
         public IActionResult Send(ReceivedDataModel model)
         {
             var departureData = new DepartureDatаRMQModel
