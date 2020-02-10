@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -11,39 +10,14 @@ namespace QueueMessageSender.Logic
 {
     public class AuthenticationJWT
     {
-        private static AuthenticationJWT _instance = null;
         private IConfiguration _configuration;
 
-        public static AuthenticationJWT Instance
+        public AuthenticationJWT(IConfiguration configuration)
         {
-            get
-            {
-                if (_instance == null)
-                    _instance = new AuthenticationJWT();
-                return _instance;
-            }
-        }
-        public IConfiguration Configuration
-        {
-            set => _configuration = value;
-        }
-        private AuthenticationJWT()
-        {
+            _configuration = configuration;
         }
 
-        public Dictionary<string, string> CreateTokens(string username) 
-        {
-            var accessToken = CreateAccessToken(username);
-            var refreshToken = CreateRefreshToken();
-            var infoTokens = new Dictionary<string, string>()
-            {
-                {"accessToken", accessToken},
-                {"refreshToken", refreshToken}
-            };
-            return infoTokens;
-        }
-
-        private string CreateAccessToken(string username) 
+        public string CreateAccessToken(string username) 
         {
             var claims = new[]
             {
@@ -66,7 +40,7 @@ namespace QueueMessageSender.Logic
             return accessTokenString;
         }
 
-        private string CreateRefreshToken()
+        public string CreateRefreshToken()
         {
             var randomNumber = new byte[16];
             using (var randomGenerator = RandomNumberGenerator.Create()) 

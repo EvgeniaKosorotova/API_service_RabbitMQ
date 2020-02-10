@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace QueueMessageSender.Logic
 {
-    interface IUserManager
+    public interface IUserManager
     {
         Task<bool> CreateAsync(string username, string password);
         Task<UserModel> GetAsync(string username = null, string token = null);

@@ -2,9 +2,13 @@
 {
     public class AuthenticationResultModel
     {
-        public bool Successful { get; set; }
         public string Error { get; set; }
         public string AccessToken { get; set; }
+
+        /// <summary>
+        /// The lifetime of the token access
+        /// </summary>
+        public string LifeTime { get; set; }
         public string RefreshToken { get; set; }
     }
 }

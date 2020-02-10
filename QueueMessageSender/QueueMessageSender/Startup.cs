@@ -28,6 +28,8 @@ namespace QueueMessageSender
             services.AddMvcCore().AddDataAnnotations();
             services.AddControllers();
             services.AddSingleton<IQueueMessageSender, RMQMessageSender>();
+            services.AddSingleton<AuthenticationJWT>();
+            services.AddScoped<IUserManager, UserManager>();
             string connection = Configuration.GetConnectionString("DefaultConnection");
             services.AddDbContext<UserContext>(options => options.UseSqlServer(connection));
             services.AddAuthentication(options => 

@@ -13,26 +13,11 @@ namespace QueueMessageSender.Logic
     {
         private static UserContext db;
         private readonly string defaultRefreshToken = "";
-        private static UserManager _instance;
 
-        public static UserManager Instance
+        public UserManager(UserContext context)
         {
-            get
-            {
-                if (_instance == null) 
-                {
-                    _instance = new UserManager();
-                }
-                return _instance;
-            }
+            db = context;
         }
-
-        public UserContext Context
-        {
-            set => db = value;
-        }
-
-        private UserManager(){}
 
         public async Task<bool> CreateAsync(string username, string password)
         {
@@ -61,9 +46,8 @@ namespace QueueMessageSender.Logic
                 return await db.Users.FirstOrDefaultAsync(u => u.Username == username);
             if (token != null) 
             {
-                var user = (from u in db.Users.AsQueryable()
-                             where u.RefreshToken == token
-                             select u).SingleOrDefault<UserModel>();
+                var user = await db.Users.FirstOrDefaultAsync(u=>u.RefreshToken.Equals(token));
+
                 //var user = await db.Users.FirstOrDefaultAsync(u => u.RefreshToken == token);
                 Console.WriteLine($"{db.Users.FirstOrDefault().Username}, {db.Users.FirstOrDefault().Password}, {db.Users.FirstOrDefault().RefreshToken}");
                 return user;
