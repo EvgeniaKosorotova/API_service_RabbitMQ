@@ -10,7 +10,7 @@ namespace QueueMessageSender.Logic
 {
     public class AuthenticationJWT
     {
-        private IConfiguration _configuration;
+        private readonly IConfiguration _configuration;
 
         public AuthenticationJWT(IConfiguration configuration)
         {

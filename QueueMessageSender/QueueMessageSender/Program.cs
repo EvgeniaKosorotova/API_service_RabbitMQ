@@ -13,7 +13,6 @@ namespace QueueMessageSender
             var logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
             try
             {
-                logger.Debug("init main");
                 CreateHostBuilder(args).Build().Run();
             }
             catch (Exception exception)

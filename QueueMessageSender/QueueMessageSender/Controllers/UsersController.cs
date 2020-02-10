@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using QueueMessageSender.Controllers.Models;
 using QueueMessageSender.Logic;
 using QueueMessageSender.Logic.Models;
@@ -26,7 +25,7 @@ namespace QueueMessageSender.Controllers
         {
             UserModel user = _userManager.GetAsync(username: authData.Username).Result;
 
-            if (!(user != null && user.Username == authData.Username && user.Password == authData.Password))
+            if (!(user != null && user.Username == authData.Username && user.Password == _userManager.GetHashPassword(authData.Password)))
                 if (_userManager.CreateAsync(authData.Username, authData.Password).Result)
                 {
                     return Created(string.Empty,
@@ -49,7 +48,7 @@ namespace QueueMessageSender.Controllers
         public IActionResult Delete(AuthenticationModel authData)
         {
             UserModel user = _userManager.GetAsync(username: authData.Username).Result;
-            if (user != null && user.Username == authData.Username && user.Password == authData.Password)
+            if (user != null && user.Username == authData.Username && user.Password == _userManager.GetHashPassword(authData.Password))
                 if (_userManager.DeleteAsync(authData.Username).Result)
                 {
                     return Ok(

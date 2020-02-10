@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using Microsoft.EntityFrameworkCore;
 using QueueMessageSender.Logic.Models;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace QueueMessageSender.Logic
@@ -24,7 +24,7 @@ namespace QueueMessageSender.Logic
             await db.Users.AddAsync(new UserModel
             {
                 Username = username,
-                Password = password,
+                Password = GetHashPassword(password),
                 RefreshToken = defaultRefreshToken
             });
             return await SaveAsync();
@@ -71,6 +71,16 @@ namespace QueueMessageSender.Logic
                 return true;
             }
             return false;
+        }
+
+        public string GetHashPassword(string password) 
+        {
+            return Convert.ToBase64String(KeyDerivation.Pbkdf2(
+            password: password,
+            salt: new byte[16],
+            prf: KeyDerivationPrf.HMACSHA256,
+            iterationCount: 10000,
+            numBytesRequested: 256 / 8));
         }
     }
 }
