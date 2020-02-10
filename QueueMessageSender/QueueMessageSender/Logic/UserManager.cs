@@ -24,7 +24,7 @@ namespace QueueMessageSender.Logic
             await db.Users.AddAsync(new UserModel
             {
                 Username = username,
-                Password = GetHashPassword(password),
+                Password = GetHash(password),
                 RefreshToken = defaultRefreshToken
             });
             return await SaveAsync();
