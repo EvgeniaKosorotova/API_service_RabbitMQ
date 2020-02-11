@@ -49,37 +49,30 @@ namespace QueueMessageSender.Logic
         {
             retry.Execute(() =>
             {
-                try
+                NamesExchange.Clear();
+                if (Connection?.CloseReason != null)
                 {
-                    if (Connection?.CloseReason != null)
+                    lock (lockConnection)
                     {
-                        lock (lockConnection)
+                        if (Connection?.CloseReason != null)
                         {
-                            if (Connection?.CloseReason != null)
-                            {
-                                Connection?.Close();
-                                Connection = Factory.CreateConnection();
-                            }
+                            Connection?.Close();
+                            Connection = Factory.CreateConnection();
                         }
                     }
-                    if (Channel?.CloseReason != null)
+                }
+                if (Channel?.CloseReason != null)
+                {
+                    lock (lockChannel)
                     {
-                        lock (lockChannel)
+                        if (Channel?.CloseReason != null)
                         {
-                            if (Channel?.CloseReason != null)
-                            {
-                                Channel?.Close();
-                                Channel = Connection.CreateModel();
-                            }
+                            Channel?.Close();
+                            Channel = Connection.CreateModel();
                         }
                     }
-                    NamesExchange.Clear();
-            }
-                catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error in Reconnect method");
-            }
-        });
+                }
+            });
         }
 
         /// <summary>
@@ -101,7 +94,6 @@ namespace QueueMessageSender.Logic
                         }
                         catch (RabbitMQ.Client.Exceptions.OperationInterruptedException ex)
                         {
-                            _logger.LogWarning(ex, "Error in InitExchange method");
                             SendMessage(datаRMQ);
                             throw ex;
                         }
@@ -123,7 +115,6 @@ namespace QueueMessageSender.Logic
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Error in SendMessage method");
                 Reconnect();
                 SendMessage(datаRMQ);
                 throw ex;
