@@ -23,7 +23,6 @@ namespace QueueMessageSender.Logic
         private readonly object lockConnection = new object();
         private readonly object lockChannel = new object();
         private DepartureDatаRMQModel datаRMQ;
-        private readonly ILogger<RMQMessageSender> _logger;
         private readonly Policy retry = Policy
             .Handle<Exception> ()
             .WaitAndRetry(5, retryAttempt => TimeSpan.FromSeconds(5));
