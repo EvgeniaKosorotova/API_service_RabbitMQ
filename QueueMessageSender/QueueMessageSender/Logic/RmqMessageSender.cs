@@ -1,4 +1,3 @@
-﻿using Microsoft.Extensions.Logging;
 using Polly;
 using QueueMessageSender.Logic.Models;
 using RabbitMQ.Client;
@@ -27,9 +26,8 @@ namespace QueueMessageSender.Logic
             .Handle<Exception> ()
             .WaitAndRetry(5, retryAttempt => TimeSpan.FromSeconds(5));
 
-        public RMQMessageSender(ILogger<RMQMessageSender> logger)
+        public RMQMessageSender()
         {
-            _logger = logger;
             if (Factory == null || Connection?.CloseReason != null || Channel?.CloseReason != null)
             {
                 Factory = new ConnectionFactory() { HostName = hostname };
