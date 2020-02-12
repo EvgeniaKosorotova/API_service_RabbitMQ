@@ -23,7 +23,6 @@ namespace QueueMessageSender.Logic
         private readonly object lockConnection = new object();
         private readonly object lockChannel = new object();
         private DepartureDatаRMQModel datаRMQ;
-        private readonly ILogger<RMQMessageSender> _logger;
         private readonly Policy retry = Policy
             .Handle<Exception> ()
             .WaitAndRetry(5, retryAttempt => TimeSpan.FromSeconds(5));
@@ -102,7 +101,7 @@ namespace QueueMessageSender.Logic
             }
         }
 
-        public void SendMessage(DepartureDatаRMQModel data)
+        public bool SendMessage(DepartureDatаRMQModel data)
         {
             datаRMQ = data;
             InitExchange(data.NameExchange);
@@ -112,6 +111,7 @@ namespace QueueMessageSender.Logic
                                     routingKey: data.RoutingKey,
                                     basicProperties: null,
                                     body: JsonSerializer.SerializeToUtf8Bytes(data.Message));
+                return true;
             }
             catch (Exception ex)
             {
