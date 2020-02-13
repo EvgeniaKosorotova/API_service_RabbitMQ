@@ -23,10 +23,10 @@ namespace QueueMessageSender.Controllers
         [HttpPost]
         public IActionResult Register(AuthenticationModel authData)
         {
-            UserModel user = _userManager.GetAsync(username: authData.Username).Result;
+            UserModel user = _userManager.GetAsync(username: authData.Username).GetAwaiter().GetResult();
 
             if (!(user != null && user.Username == authData.Username && user.Password == _userManager.GetHash(authData.Password)))
-                if (_userManager.CreateAsync(authData.Username, authData.Password).Result)
+                if (_userManager.CreateAsync(authData.Username, authData.Password).GetAwaiter().GetResult())
                 {
                     return Created(string.Empty,
                         new AuthenticationResultModel
@@ -47,9 +47,9 @@ namespace QueueMessageSender.Controllers
         [HttpDelete]
         public IActionResult Delete(AuthenticationModel authData)
         {
-            UserModel user = _userManager.GetAsync(username: authData.Username, password: authData.Password).Result;
+            UserModel user = _userManager.GetAsync(username: authData.Username, password: authData.Password).GetAwaiter().GetResult();
             if (user != null)
-                if (_userManager.DeleteAsync(authData.Username).Result)
+                if (_userManager.DeleteAsync(authData.Username).GetAwaiter().GetResult())
                 {
                     return Ok(
                         new AuthenticationResultModel

@@ -32,7 +32,7 @@ namespace QueueMessageSender.Controllers
         [HttpGet]
         public IActionResult Login(AuthenticationModel authData)
         {
-            UserModel user = _userManager.GetAsync(username: authData.Username, password: authData.Password).Result;
+            UserModel user = _userManager.GetAsync(username: authData.Username, password: authData.Password).GetAwaiter().GetResult();
             if (user == null)
             {
                 return BadRequest(
@@ -43,7 +43,7 @@ namespace QueueMessageSender.Controllers
             }
             var accessToken = _authenticationJWT.CreateAccessToken(user.Username);
             var refreshToken = _authenticationJWT.CreateRefreshToken();
-            if (_userManager.UpdateTokenAsync(user.Username, refreshToken).Result)
+            if (_userManager.UpdateTokenAsync(user.Username, refreshToken).GetAwaiter().GetResult())
             {
                 return Ok(
                     new AuthenticationResultModel
@@ -66,12 +66,12 @@ namespace QueueMessageSender.Controllers
         [HttpPut]
         public IActionResult Refresh(string refreshToken)
         {
-            UserModel user = _userManager.GetAsync(token: refreshToken).Result;
+            UserModel user = _userManager.GetAsync(token: refreshToken).GetAwaiter().GetResult();
             if (user != null) 
             {
                 var newAccessToken = _authenticationJWT.CreateAccessToken(user.Username);
                 var newRefreshToken = _authenticationJWT.CreateRefreshToken();
-                if (_userManager.UpdateTokenAsync(user.Username, refreshToken).Result)
+                if (_userManager.UpdateTokenAsync(user.Username, refreshToken).GetAwaiter().GetResult())
                 {
                     return Ok(
                         new AuthenticationResultModel
