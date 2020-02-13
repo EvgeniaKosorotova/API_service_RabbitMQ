@@ -47,8 +47,8 @@ namespace QueueMessageSender.Controllers
         [HttpDelete]
         public IActionResult Delete(AuthenticationModel authData)
         {
-            UserModel user = _userManager.GetAsync(username: authData.Username).Result;
-            if (user != null && user.Username == authData.Username && user.Password == _userManager.GetHash(authData.Password))
+            UserModel user = _userManager.GetAsync(username: authData.Username, password: authData.Password).Result;
+            if (user != null)
                 if (_userManager.DeleteAsync(authData.Username).Result)
                 {
                     return Ok(
