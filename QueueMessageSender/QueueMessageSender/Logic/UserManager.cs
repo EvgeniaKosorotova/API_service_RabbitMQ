@@ -40,10 +40,13 @@ namespace QueueMessageSender.Logic
             return await SaveAsync();
         }
 
-        public async Task<UserModel> GetAsync(string username = null, string token = null)
+        public async Task<UserModel> GetAsync(string username = null, string password = null, string token = null)
         {
-            if (username != null) 
-                return await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username));
+            if (username != null)
+                if (password != null)
+                    return await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username) && u.Password.Equals(GetHash(password)));
+                else 
+                    return await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username));
             if (token != null) 
             {
                 var user = await db.Users.FirstOrDefaultAsync(u => u.RefreshToken.Equals(token));

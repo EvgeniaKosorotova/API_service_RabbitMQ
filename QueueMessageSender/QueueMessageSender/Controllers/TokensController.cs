@@ -32,8 +32,8 @@ namespace QueueMessageSender.Controllers
         [HttpGet]
         public IActionResult Login(AuthenticationModel authData)
         {
-            UserModel user = _userManager.GetAsync(username: authData.Username).Result;
-            if (!(user != null && user.Username == authData.Username && user.Password == _userManager.GetHash(authData.Password)))
+            UserModel user = _userManager.GetAsync(username: authData.Username, password: authData.Password).Result;
+            if (user == null)
             {
                 return BadRequest(
                     new AuthenticationResultModel
@@ -64,21 +64,21 @@ namespace QueueMessageSender.Controllers
         /// Method of updating access tokens and refresh.
         /// </summary>
         [HttpPut]
-        public IActionResult Refresh(string oldRefreshToken)
+        public IActionResult Refresh(string refreshToken)
         {
-            UserModel user = _userManager.GetAsync(token: oldRefreshToken).Result;
+            UserModel user = _userManager.GetAsync(token: refreshToken).Result;
             if (user != null) 
             {
-                var accessToken = _authenticationJWT.CreateAccessToken(user.Username);
-                var refreshToken = _authenticationJWT.CreateRefreshToken();
+                var newAccessToken = _authenticationJWT.CreateAccessToken(user.Username);
+                var newRefreshToken = _authenticationJWT.CreateRefreshToken();
                 if (_userManager.UpdateTokenAsync(user.Username, refreshToken).Result)
                 {
                     return Ok(
                         new AuthenticationResultModel
                         {
-                            AccessToken = accessToken,
+                            AccessToken = newAccessToken,
                             LifeTime = $"{TimeSpan.FromMinutes(_configuration.GetValue<double>("Settings:JWT:AccessToken:ExpiryInMinutes")).TotalSeconds} sec",
-                            RefreshToken = refreshToken
+                            RefreshToken = newRefreshToken
                         });
                 }
                 return BadRequest(
