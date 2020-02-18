@@ -2,6 +2,7 @@
 using QueueMessageSender.Controllers.Models;
 using QueueMessageSender.Logic;
 using QueueMessageSender.Logic.Models;
+using System.Threading.Tasks;
 
 namespace QueueMessageSender.Controllers
 {
@@ -21,21 +22,21 @@ namespace QueueMessageSender.Controllers
         /// A method of registering and saving new credentials in a database.
         /// </summary>
         [HttpPost]
-        public IActionResult Register(AuthenticationModel authData)
+        public async Task<IActionResult> RegisterAsync(AuthenticationModel authData)
         {
             UserModel user = _userManager.GetAsync(username: authData.Username).GetAwaiter().GetResult();
 
             if (!(user != null && user.Username == authData.Username && user.Password == _userManager.GetHash(authData.Password)))
-                if (_userManager.CreateAsync(authData.Username, authData.Password).GetAwaiter().GetResult())
+                if (await _userManager.CreateAsync(authData.Username, authData.Password))
                 {
                     return Created(string.Empty,
                         new AuthenticationResultModel
                         {
-                            Error = "Credentials were recorded and saved."
+                            Message = "Credentials were recorded and saved."
                         });
                 }
             return BadRequest(
-                new AuthenticationResultModel
+                new ErrorModel
                 {
                     Error = "Credentials have been created earlier."
                 });
@@ -45,20 +46,20 @@ namespace QueueMessageSender.Controllers
         /// Method to delete a record from the database.
         /// </summary>
         [HttpDelete]
-        public IActionResult Delete(AuthenticationModel authData)
+        public async Task<IActionResult> DeleteAsync(AuthenticationModel authData)
         {
             UserModel user = _userManager.GetAsync(username: authData.Username, password: authData.Password).GetAwaiter().GetResult();
             if (user != null)
-                if (_userManager.DeleteAsync(authData.Username).GetAwaiter().GetResult())
+                if (await _userManager.DeleteAsync(authData.Username))
                 {
                     return Ok(
                         new AuthenticationResultModel
                         {
-                            Error = "Credentials have been deleted."
+                            Message = "Credentials have been deleted."
                         });
                 }
             return NotFound(
-                new AuthenticationResultModel
+                new ErrorModel
                 {
                     Error = "No credentials were found or deleted."
                 });

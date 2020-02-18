@@ -4,6 +4,7 @@ using QueueMessageSender.Controllers.Models;
 using QueueMessageSender.Logic;
 using QueueMessageSender.Logic.Models;
 using System;
+using System.Threading.Tasks;
 
 namespace QueueMessageSender.Controllers
 {
@@ -29,21 +30,21 @@ namespace QueueMessageSender.Controllers
         /// A post method that checks the accepted credentials.
         /// If successful, creates a token for authentication.
         /// </summary>
-        [HttpGet]
-        public IActionResult Login(AuthenticationModel authData)
+        [HttpPost]
+        public async Task<IActionResult> LoginAsync(AuthenticationModel authData)
         {
-            UserModel user = _userManager.GetAsync(username: authData.Username, password: authData.Password).GetAwaiter().GetResult();
+            UserModel user = await _userManager.GetAsync(username: authData.Username, password: authData.Password);
             if (user == null)
             {
                 return BadRequest(
-                    new AuthenticationResultModel
+                    new ErrorModel
                     {
                         Error = "Username and password are invalid."
                     });
             }
             var accessToken = _authenticationJWT.CreateAccessToken(user.Username);
             var refreshToken = _authenticationJWT.CreateRefreshToken();
-            if (_userManager.UpdateTokenAsync(user.Username, refreshToken).GetAwaiter().GetResult())
+            if (await _userManager.UpdateTokenAsync(user.Username, refreshToken))
             {
                 return Ok(
                     new AuthenticationResultModel
@@ -54,7 +55,7 @@ namespace QueueMessageSender.Controllers
                     });
             }
             return BadRequest(
-                new AuthenticationResultModel
+                new ErrorModel
                 {
                     Error = "Tokens have not been created."
                 });
@@ -64,14 +65,14 @@ namespace QueueMessageSender.Controllers
         /// Method of updating access tokens and refresh.
         /// </summary>
         [HttpPut]
-        public IActionResult Refresh(string refreshToken)
+        public async Task<IActionResult> RefreshAsync(string refreshToken)
         {
-            UserModel user = _userManager.GetAsync(token: refreshToken).GetAwaiter().GetResult();
+            UserModel user = await _userManager.GetAsync(token: refreshToken);
             if (user != null) 
             {
                 var newAccessToken = _authenticationJWT.CreateAccessToken(user.Username);
                 var newRefreshToken = _authenticationJWT.CreateRefreshToken();
-                if (_userManager.UpdateTokenAsync(user.Username, refreshToken).GetAwaiter().GetResult())
+                if (await _userManager.UpdateTokenAsync(user.Username, refreshToken))
                 {
                     return Ok(
                         new AuthenticationResultModel
@@ -82,14 +83,14 @@ namespace QueueMessageSender.Controllers
                         });
                 }
                 return BadRequest(
-                    new AuthenticationResultModel
+                    new ErrorModel
                     {
                         Error = "Tokens have not been created."
                     });
             }
 
             return BadRequest(
-                    new AuthenticationResultModel
+                    new ErrorModel
                     {
                         Error = "Token is invalid."
                     });

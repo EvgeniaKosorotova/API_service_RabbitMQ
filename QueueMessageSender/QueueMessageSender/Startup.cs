@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
+using QueueMessageSender.Controllers.Models;
 using QueueMessageSender.Logic;
 using System.Text;
 
@@ -36,23 +37,24 @@ namespace QueueMessageSender
                 {
                     options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
                 });
-            services.AddAuthentication(options => 
+
+            services.AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 })
-               .AddJwtBearer(jwtBearerOptions =>
-               {
-                   jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters
-                   {
-                       ValidateIssuer = true,
-                       ValidateAudience = true,
-                       ValidateLifetime = true,
-                       ValidateIssuerSigningKey = true,
-                       ValidIssuer = Configuration.GetValue<string>("Settings:JWT:Issuer"),
-                       ValidAudience = Configuration.GetValue<string>("Settings:JWT:Audience"),
-                       IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration.GetValue<string>("Settings:JWT:SecurityKey")))
-                   };
-               });
+                .AddJwtBearer(jwtBearerOptions =>
+                {
+                    jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = Configuration.GetValue<string>("Settings:JWT:Issuer"),
+                        ValidAudience = Configuration.GetValue<string>("Settings:JWT:Audience"),
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration.GetValue<string>("Settings:JWT:SecurityKey")))
+                    };
+                });
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Queue Message Sender", Version = "v1" });
@@ -78,7 +80,7 @@ namespace QueueMessageSender
                     var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
                     var exception = exceptionHandlerPathFeature.Error;
 
-                    var result = JsonConvert.SerializeObject(new { error = exception.Message });
+                    var result = JsonConvert.SerializeObject(new ErrorModel { Error = exception.Message });
                     context.Response.ContentType = "application/json";
                     await context.Response.WriteAsync(result);
                 }));

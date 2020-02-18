@@ -4,7 +4,6 @@ namespace QueueMessageSender.Controllers.Models
 {
     public class AuthenticationResultModel
     {
-        public string Error { get; set; }
         public string AccessToken { get; set; }
 
         /// <summary>
@@ -12,5 +11,6 @@ namespace QueueMessageSender.Controllers.Models
         /// </summary>
         public TimeSpan LifeTime { get; set; }
         public string RefreshToken { get; set; }
+        public string Message { get; set; }
     }
 }
