@@ -5,12 +5,6 @@ VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QueueMessageSender", "QueueMessageSender\QueueMessageSender.csproj", "{77862FC2-EF3B-4860-83D1-D88981041BB6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MSUnitMessageSenderTests", "Tests\MessageSenderTestsMSUnit\MSUnitMessageSenderTests.csproj", "{55240DAA-1703-43C1-8A9F-7BAB24C94356}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NUnitMessageSenderTests", "Tests\NUnitMessageSenderTests\NUnitMessageSenderTests.csproj", "{60749C20-8AF9-489F-B827-DEDB2824F5E9}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XUnitMessageSenderTests", "Tests\XUnitMessageSenderTests\XUnitMessageSenderTests.csproj", "{C376F80E-CAFB-40DE-8B59-A5451F6289B1}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,18 +15,6 @@ Global
 		{77862FC2-EF3B-4860-83D1-D88981041BB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{77862FC2-EF3B-4860-83D1-D88981041BB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{77862FC2-EF3B-4860-83D1-D88981041BB6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{55240DAA-1703-43C1-8A9F-7BAB24C94356}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{55240DAA-1703-43C1-8A9F-7BAB24C94356}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{55240DAA-1703-43C1-8A9F-7BAB24C94356}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{55240DAA-1703-43C1-8A9F-7BAB24C94356}.Release|Any CPU.Build.0 = Release|Any CPU
-		{60749C20-8AF9-489F-B827-DEDB2824F5E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{60749C20-8AF9-489F-B827-DEDB2824F5E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{60749C20-8AF9-489F-B827-DEDB2824F5E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{60749C20-8AF9-489F-B827-DEDB2824F5E9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C376F80E-CAFB-40DE-8B59-A5451F6289B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C376F80E-CAFB-40DE-8B59-A5451F6289B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C376F80E-CAFB-40DE-8B59-A5451F6289B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C376F80E-CAFB-40DE-8B59-A5451F6289B1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

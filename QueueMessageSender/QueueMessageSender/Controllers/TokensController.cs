@@ -49,7 +49,7 @@ namespace QueueMessageSender.Controllers
                     new AuthenticationResultModel
                     {
                         AccessToken = accessToken,
-                        LifeTime = $"{TimeSpan.FromMinutes(_configuration.GetValue<double>("Settings:JWT:AccessToken:ExpiryInMinutes")).TotalSeconds} sec",
+                        LifeTime = TimeSpan.FromMinutes(_configuration.GetValue<double>("Settings:JWT:AccessToken:ExpiryInMinutes")),
                         RefreshToken = refreshToken
                     });
             }
@@ -77,7 +77,7 @@ namespace QueueMessageSender.Controllers
                         new AuthenticationResultModel
                         {
                             AccessToken = newAccessToken,
-                            LifeTime = $"{TimeSpan.FromMinutes(_configuration.GetValue<double>("Settings:JWT:AccessToken:ExpiryInMinutes")).TotalSeconds} sec",
+                            LifeTime = TimeSpan.FromMinutes(_configuration.GetValue<double>("Settings:JWT:AccessToken:ExpiryInMinutes")),
                             RefreshToken = newRefreshToken
                         });
                 }

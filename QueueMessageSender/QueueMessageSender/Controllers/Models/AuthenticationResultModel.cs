@@ -1,4 +1,6 @@
-﻿namespace QueueMessageSender.Controllers.Models
+﻿using System;
+
+namespace QueueMessageSender.Controllers.Models
 {
     public class AuthenticationResultModel
     {
@@ -8,7 +10,7 @@
         /// <summary>
         /// The lifetime of the token access
         /// </summary>
-        public string LifeTime { get; set; }
+        public TimeSpan LifeTime { get; set; }
         public string RefreshToken { get; set; }
     }
 }
