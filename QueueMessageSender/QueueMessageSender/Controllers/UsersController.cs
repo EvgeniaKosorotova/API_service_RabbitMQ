@@ -30,7 +30,7 @@ namespace QueueMessageSender.Controllers
                 if (await _userManager.CreateAsync(authData.Username, authData.Password))
                 {
                     return Created(string.Empty,
-                        new AuthenticationResultModel
+                        new 
                         {
                             Message = "Credentials were recorded and saved."
                         });
@@ -46,14 +46,14 @@ namespace QueueMessageSender.Controllers
         /// Method to delete a record from the database.
         /// </summary>
         [HttpDelete]
-        public async Task<IActionResult> DeleteAsync(AuthenticationModel authData)
+        public async Task<IActionResult> DeleteAsync(int id)
         {
-            UserModel user = _userManager.GetAsync(username: authData.Username, password: authData.Password).GetAwaiter().GetResult();
+            UserModel user = await _userManager.GetAsync(id: id);
             if (user != null)
-                if (await _userManager.DeleteAsync(authData.Username))
+                if (await _userManager.DeleteAsync(id))
                 {
                     return Ok(
-                        new AuthenticationResultModel
+                        new 
                         {
                             Message = "Credentials have been deleted."
                         });

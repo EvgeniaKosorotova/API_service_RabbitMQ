@@ -30,9 +30,9 @@ namespace QueueMessageSender.Logic
             return await SaveAsync();
         }
 
-        public async Task<bool> DeleteAsync(string username)
+        public async Task<bool> DeleteAsync(int id)
         {
-            UserModel user = await db.Users.FirstOrDefaultAsync(u => u.Username == username);
+            UserModel user = await db.Users.FirstOrDefaultAsync(u => u.Id == id);
             if (user != null)
             {
                 db.Users.Remove(user);
@@ -40,8 +40,10 @@ namespace QueueMessageSender.Logic
             return await SaveAsync();
         }
 
-        public async Task<UserModel> GetAsync(string username = null, string password = null, string token = null)
+        public async Task<UserModel> GetAsync(int id = 0, string username = null, string password = null, string token = null)
         {
+            if (id != 0)
+                return await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username));
             if (username != null)
                 if (password != null)
                     return await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username) && u.Password.Equals(GetHash(password)));
