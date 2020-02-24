@@ -7,6 +7,6 @@ namespace QueueMessageSender.Logic
     /// </summary>
     public interface IQueueMessageSender
     {
-        void SendMessage(DepartureDatаRMQModel data);
+        bool SendMessage(DepartureDatаRMQModel data);
     }
 }

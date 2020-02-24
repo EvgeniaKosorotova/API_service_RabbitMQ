@@ -1,4 +1,3 @@
-﻿using Microsoft.Extensions.Logging;
 using Polly;
 using QueueMessageSender.Logic.Models;
 using RabbitMQ.Client;
@@ -15,7 +14,7 @@ namespace QueueMessageSender.Logic
     public class RMQMessageSender : IQueueMessageSender
     {
         private static readonly string hostname = "localhost";
-        private ConnectionFactory Factory = null;
+        private readonly ConnectionFactory Factory = null;
         private IConnection Connection = null;
         private IModel Channel = null;
         private readonly List<string> NamesExchange = new List<string>();
@@ -23,21 +22,18 @@ namespace QueueMessageSender.Logic
         private readonly object lockConnection = new object();
         private readonly object lockChannel = new object();
         private DepartureDatаRMQModel datаRMQ;
-        private readonly ILogger<RMQMessageSender> _logger;
         private readonly Policy retry = Policy
             .Handle<Exception> ()
             .WaitAndRetry(5, retryAttempt => TimeSpan.FromSeconds(5));
 
-        public RMQMessageSender(ILogger<RMQMessageSender> logger)
+        public RMQMessageSender()
         {
-            _logger = logger;
             if (Factory == null || Connection?.CloseReason != null || Channel?.CloseReason != null)
             {
                 Factory = new ConnectionFactory() { HostName = hostname };
                 Factory.AutomaticRecoveryEnabled = true;
                 Connection = Factory.CreateConnection();
                 Channel = Connection.CreateModel();
-                _logger.LogInformation("Connection factory, connection, channel were created.");
 
                 Connection.ConnectionShutdown += Reconnect;
                 Channel.ModelShutdown += Reconnect;
@@ -50,38 +46,28 @@ namespace QueueMessageSender.Logic
         {
             retry.Execute(() =>
             {
-                try
+                NamesExchange.Clear();
+                if (Connection?.CloseReason != null)
                 {
-                    if (Connection?.CloseReason != null)
+                    lock (lockConnection)
                     {
-                        lock (lockConnection)
+                        if (Connection?.CloseReason != null)
                         {
-                            if (Connection?.CloseReason != null)
-                            {
-                                _logger.LogInformation("Connection has recreated.");
-                                Connection?.Close();
-                                Connection = Factory.CreateConnection();
-                            }
+                            Connection?.Close();
+                            Connection = Factory.CreateConnection();
                         }
                     }
-                    if (Channel?.CloseReason != null)
-                    {
-                        lock (lockChannel)
-                        {
-                            if (Channel?.CloseReason != null)
-                            {
-                                _logger.LogInformation("Channel has recreated.");
-                                Channel?.Close();
-                                Channel = Connection.CreateModel();
-                            }
-                        }
-                    }
-                    NamesExchange.Clear();
-                    _logger.LogInformation("Try reconnect.");
                 }
-                catch (RabbitMQ.Client.Exceptions.BrokerUnreachableException ex) 
+                if (Channel?.CloseReason != null)
                 {
-                    _logger.LogWarning(ex, "Error in Reconnect method");
+                    lock (lockChannel)
+                    {
+                        if (Channel?.CloseReason != null)
+                        {
+                            Channel?.Close();
+                            Channel = Connection.CreateModel();
+                        }
+                    }
                 }
             });
         }
@@ -102,19 +88,18 @@ namespace QueueMessageSender.Logic
                         {
                             Channel.ExchangeDeclare(exchange: nameExchange, type: ExchangeType.Fanout);
                             NamesExchange.Add(nameExchange);
-                            _logger.LogInformation($"An exchange with a new name \"{nameExchange}\" has been announced.");
                         }
                         catch (RabbitMQ.Client.Exceptions.OperationInterruptedException ex)
                         {
-                            _logger.LogWarning(ex, "Error in InitExchange method");
                             SendMessage(datаRMQ);
+                            throw ex;
                         }
                     }
                 }
             }
         }
 
-        public void SendMessage(DepartureDatаRMQModel data)
+        public bool SendMessage(DepartureDatаRMQModel data)
         {
             datаRMQ = data;
             InitExchange(data.NameExchange);
@@ -124,13 +109,13 @@ namespace QueueMessageSender.Logic
                                     routingKey: data.RoutingKey,
                                     basicProperties: null,
                                     body: JsonSerializer.SerializeToUtf8Bytes(data.Message));
-                _logger.LogInformation($"Message has been sent. Exchange: {data.NameExchange}, routing key: {data.RoutingKey}, message: {data.Message}");
+                return true;
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Error in SendMessage method");
                 Reconnect();
                 SendMessage(datаRMQ);
+                throw ex;
             }
         }
     }
