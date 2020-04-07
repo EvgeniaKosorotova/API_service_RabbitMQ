@@ -10,6 +10,5 @@ namespace QueueMessageSender.Logic
         Task<bool> UpdateTokenAsync(string username, string refreshToken);
         Task<bool> DeleteAsync(int id);
         Task<bool> SaveAsync();
-        string GetHash(string password);
     }
 }

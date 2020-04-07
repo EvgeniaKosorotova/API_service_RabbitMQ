@@ -50,7 +50,7 @@ namespace QueueMessageSender.Controllers
                     new AuthenticationResultModel
                     {
                         AccessToken = accessToken,
-                        LifeTime = TimeSpan.FromMinutes(_configuration.GetValue<double>("Settings:JWT:AccessToken:ExpiryInMinutes")),
+                        LifeTime = TimeSpan.ParseExact(_configuration.GetSection("Settings:JWT:AccessToken:Expiry").Value, "c", null),
                         RefreshToken = refreshToken
                     });
             }
@@ -68,32 +68,34 @@ namespace QueueMessageSender.Controllers
         public async Task<IActionResult> RefreshAsync(string refreshToken)
         {
             UserModel user = await _userManager.GetAsync(token: refreshToken);
-            if (user != null) 
+            if (user == null) 
             {
-                var newAccessToken = _authenticationJWT.CreateAccessToken(user.Username);
-                var newRefreshToken = _authenticationJWT.CreateRefreshToken();
-                if (await _userManager.UpdateTokenAsync(user.Username, refreshToken))
-                {
-                    return Ok(
-                        new AuthenticationResultModel
-                        {
-                            AccessToken = newAccessToken,
-                            LifeTime = TimeSpan.FromMinutes(_configuration.GetValue<double>("Settings:JWT:AccessToken:ExpiryInMinutes")),
-                            RefreshToken = newRefreshToken
-                        });
-                }
                 return BadRequest(
-                    new ErrorModel
-                    {
-                        Error = "Tokens have not been created."
-                    });
-            }
-
-            return BadRequest(
                     new ErrorModel
                     {
                         Error = "Token is invalid."
                     });
+            }
+
+            var newAccessToken = _authenticationJWT.CreateAccessToken(user.Username);
+            var newRefreshToken = _authenticationJWT.CreateRefreshToken();
+
+            if (await _userManager.UpdateTokenAsync(user.Username, refreshToken))
+            {
+                return Ok(
+                    new AuthenticationResultModel
+                    {
+                        AccessToken = newAccessToken,
+                        LifeTime = TimeSpan.ParseExact(_configuration.GetSection("Settings:JWT:AccessToken:Expiry").Value, "c", null),
+                        RefreshToken = newRefreshToken
+                    });
+            }
+
+            return BadRequest(
+                new ErrorModel
+                {
+                    Error = "Tokens have not been created."
+                });
         }
     }
 }

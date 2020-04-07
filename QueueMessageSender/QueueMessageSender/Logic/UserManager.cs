@@ -13,10 +13,12 @@ namespace QueueMessageSender.Logic
     {
         private static UserContext db;
         private readonly string defaultRefreshToken = "";
+        private readonly Helper _helper;
 
-        public UserManager(UserContext context)
+        public UserManager(UserContext context, Helper helper)
         {
             db = context;
+            _helper = helper;
         }
 
         public async Task<bool> CreateAsync(string username, string password)
@@ -24,7 +26,7 @@ namespace QueueMessageSender.Logic
             await db.Users.AddAsync(new UserModel
             {
                 Username = username,
-                Password = GetHash(password),
+                Password = _helper.GetHash(password),
                 RefreshToken = defaultRefreshToken
             });
             return await SaveAsync();
@@ -43,17 +45,27 @@ namespace QueueMessageSender.Logic
         public async Task<UserModel> GetAsync(int id = 0, string username = null, string password = null, string token = null)
         {
             if (id != 0)
+            {
                 return await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username));
+            }
+
             if (username != null)
+            {
                 if (password != null)
-                    return await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username) && u.Password.Equals(GetHash(password)));
-                else 
+                {
+                    return await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username) && u.Password.Equals(_helper.GetHash(password)));
+                }
+                else
+                {
                     return await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username));
+                }
+            }
+                
             if (token != null) 
             {
-                var user = await db.Users.FirstOrDefaultAsync(u => u.RefreshToken.Equals(token));
-                return user;
+                return await db.Users.FirstOrDefaultAsync(u => u.RefreshToken.Equals(token));
             }
+
             return null;
         }
 
@@ -76,16 +88,6 @@ namespace QueueMessageSender.Logic
                 return true;
             }
             return false;
-        }
-
-        public string GetHash(string str) 
-        {
-            return Convert.ToBase64String(KeyDerivation.Pbkdf2(
-            password: str,
-            salt: new byte[16],
-            prf: KeyDerivationPrf.HMACSHA256,
-            iterationCount: 10000,
-            numBytesRequested: 256 / 8));
         }
     }
 }

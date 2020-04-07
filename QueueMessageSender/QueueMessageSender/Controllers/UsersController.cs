@@ -12,10 +12,12 @@ namespace QueueMessageSender.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserManager _userManager;
+        private readonly Helper _helper;
 
-        public UsersController(IUserManager userManager)
+        public UsersController(IUserManager userManager, Helper helper)
         {
             _userManager = userManager;
+            _helper = helper;
         }
 
         /// <summary>
@@ -26,7 +28,7 @@ namespace QueueMessageSender.Controllers
         {
             UserModel user = _userManager.GetAsync(username: authData.Username).GetAwaiter().GetResult();
 
-            if (!(user != null && user.Username == authData.Username && user.Password == _userManager.GetHash(authData.Password)))
+            if (!(user != null && user.Username == authData.Username && user.Password == _helper.GetHash(authData.Password)))
                 if (await _userManager.CreateAsync(authData.Username, authData.Password))
                 {
                     return Created(string.Empty,

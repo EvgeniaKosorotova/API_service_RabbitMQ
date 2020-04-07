@@ -32,6 +32,7 @@ namespace QueueMessageSender
             services.AddControllers();
             services.AddSingleton<IQueueMessageSender, RMQMessageSender>();
             services.AddSingleton<AuthenticationJWT>();
+            services.AddSingleton<Helper>();
             services.AddScoped<IUserManager, UserManager>();
             services.AddDbContext<UserContext>(options =>
                 {
