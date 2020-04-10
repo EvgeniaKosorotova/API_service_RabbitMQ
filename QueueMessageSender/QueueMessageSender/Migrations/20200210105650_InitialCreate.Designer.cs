@@ -8,7 +8,7 @@ using QueueMessageSender.Logic;
 
 namespace QueueMessageSender.Migrations
 {
-    [DbContext(typeof(UserContext))]
+    [DbContext(typeof(DataContext))]
     [Migration("20200210105650_InitialCreate")]
     partial class InitialCreate
     {

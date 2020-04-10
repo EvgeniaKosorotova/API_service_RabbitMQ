@@ -6,8 +6,8 @@ using QueueMessageSender.Logic;
 
 namespace QueueMessageSender.Migrations
 {
-    [DbContext(typeof(UserContext))]
-    partial class UserContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(DataContext))]
+    partial class DataContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {

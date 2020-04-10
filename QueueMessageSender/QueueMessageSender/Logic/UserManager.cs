@@ -1,7 +1,5 @@
-﻿using Microsoft.AspNetCore.Cryptography.KeyDerivation;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using QueueMessageSender.Logic.Models;
-using System;
 using System.Threading.Tasks;
 
 namespace QueueMessageSender.Logic
@@ -11,42 +9,43 @@ namespace QueueMessageSender.Logic
     /// </summary>
     public class UserManager : IUserManager
     {
-        private static UserContext db;
-        private readonly string defaultRefreshToken = "";
+        private static DataContext db;
         private readonly Helper _helper;
 
-        public UserManager(UserContext context, Helper helper)
+        public UserManager(DataContext context, Helper helper)
         {
             db = context;
             _helper = helper;
         }
 
-        public async Task<bool> CreateAsync(string username, string password)
+        public async Task<int> CreateAsync(string username, string password)
         {
             await db.Users.AddAsync(new UserModel
             {
                 Username = username,
-                Password = _helper.GetHash(password),
-                RefreshToken = defaultRefreshToken
+                Password = _helper.GetHash(password)
             });
-            return await SaveAsync();
+
+            return await db.SaveChangesAsync();
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<int> DeleteAsync(int id)
         {
-            UserModel user = await db.Users.FirstOrDefaultAsync(u => u.Id == id);
+            UserModel user = await db.Users.FirstOrDefaultAsync(u => u.Id.Equals(id));
+
             if (user != null)
             {
                 db.Users.Remove(user);
             }
-            return await SaveAsync();
+
+            return await db.SaveChangesAsync();
         }
 
-        public async Task<UserModel> GetAsync(int id = 0, string username = null, string password = null, string token = null)
+        public async Task<UserModel> GetAsync(int id = 0, string username = null, string password = null)
         {
             if (id != 0)
             {
-                return await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username));
+                return await db.Users.FirstOrDefaultAsync(u => u.Id.Equals(id));
             }
 
             if (username != null)
@@ -60,34 +59,8 @@ namespace QueueMessageSender.Logic
                     return await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username));
                 }
             }
-                
-            if (token != null) 
-            {
-                return await db.Users.FirstOrDefaultAsync(u => u.RefreshToken.Equals(token));
-            }
 
             return null;
-        }
-
-        public async Task<bool> UpdateTokenAsync(string username, string refreshToken)
-        {
-            UserModel user = await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username));
-            if (user != null && refreshToken != defaultRefreshToken)
-            {
-                var entity = db.Users.Attach(user);
-                entity.State = EntityState.Modified;
-                user.RefreshToken = refreshToken;
-            }
-            return await SaveAsync();
-        }
-
-        public async Task<bool> SaveAsync()
-        {
-            if (await db.SaveChangesAsync() > 0) 
-            {
-                return true;
-            }
-            return false;
         }
     }
 }

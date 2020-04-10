@@ -1,12 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using QueueMessageSender.Logic.Models;
+using QueueMessageSender.Models;
 
 namespace QueueMessageSender.Logic
 {
-    public class UserContext : DbContext
+    public class DataContext : DbContext
     {
         public DbSet<UserModel> Users { get; set; }
-        public UserContext(DbContextOptions<UserContext> options) :
+        public DbSet<TokenModel> Tokens { get; set; }
+        public DataContext(DbContextOptions<DataContext> options) :
             base(options){}
     }
 }

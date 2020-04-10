@@ -16,14 +16,17 @@ namespace QueueMessageSender.Controllers
         private readonly IUserManager _userManager;
         private readonly AuthenticationJWT _authenticationJWT;
         private readonly IConfiguration _configuration;
+        private readonly ITokenManager _tokenManager;
 
         public TokensController(IUserManager userManager,
                                   AuthenticationJWT authenticationJWT,
-                                  IConfiguration configuration)
+                                  IConfiguration configuration,
+                                  ITokenManager tokenManager)
         {
             _userManager = userManager;
             _authenticationJWT = authenticationJWT;
             _configuration = configuration;
+            _tokenManager = tokenManager;
         }
 
         /// <summary>
@@ -34,6 +37,7 @@ namespace QueueMessageSender.Controllers
         public async Task<IActionResult> LoginAsync(AuthenticationModel authData)
         {
             UserModel user = await _userManager.GetAsync(username: authData.Username, password: authData.Password);
+
             if (user == null)
             {
                 return BadRequest(
@@ -42,9 +46,11 @@ namespace QueueMessageSender.Controllers
                         Error = "Username and password are invalid."
                     });
             }
+
             var accessToken = _authenticationJWT.CreateAccessToken(user.Username);
             var refreshToken = _authenticationJWT.CreateRefreshToken();
-            if (await _userManager.UpdateTokenAsync(user.Username, refreshToken))
+
+            if (await _tokenManager.AddTokenAsync(user, refreshToken) > 0)
             {
                 return Ok(
                     new AuthenticationResultModel
@@ -54,6 +60,7 @@ namespace QueueMessageSender.Controllers
                         RefreshToken = refreshToken
                     });
             }
+
             return BadRequest(
                 new ErrorModel
                 {
@@ -67,8 +74,9 @@ namespace QueueMessageSender.Controllers
         [HttpPut]
         public async Task<IActionResult> RefreshAsync(string refreshToken)
         {
-            UserModel user = await _userManager.GetAsync(token: refreshToken);
-            if (user == null) 
+            var userId = await _tokenManager.GetUser(token: refreshToken);
+
+            if (userId <= 0) 
             {
                 return BadRequest(
                     new ErrorModel
@@ -77,10 +85,12 @@ namespace QueueMessageSender.Controllers
                     });
             }
 
+            var user = await _userManager.GetAsync(id: userId);
             var newAccessToken = _authenticationJWT.CreateAccessToken(user.Username);
             var newRefreshToken = _authenticationJWT.CreateRefreshToken();
 
-            if (await _userManager.UpdateTokenAsync(user.Username, refreshToken))
+            if (await _tokenManager.DeleteAsync(refreshToken) > 0 
+                && await _tokenManager.AddTokenAsync(user, newRefreshToken) > 0)
             {
                 return Ok(
                     new AuthenticationResultModel

@@ -33,8 +33,9 @@ namespace QueueMessageSender
             services.AddSingleton<IQueueMessageSender, RMQMessageSender>();
             services.AddSingleton<AuthenticationJWT>();
             services.AddSingleton<Helper>();
+            services.AddScoped<ITokenManager, TokenManager>();
             services.AddScoped<IUserManager, UserManager>();
-            services.AddDbContext<UserContext>(options =>
+            services.AddDbContext<DataContext>(options =>
                 {
                     options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
                 });

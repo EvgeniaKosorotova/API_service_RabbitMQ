@@ -13,11 +13,13 @@ namespace QueueMessageSender.Controllers
     {
         private readonly IUserManager _userManager;
         private readonly Helper _helper;
+        private readonly ITokenManager _tokenManager;
 
-        public UsersController(IUserManager userManager, Helper helper)
+        public UsersController(IUserManager userManager, Helper helper, ITokenManager tokenManager)
         {
             _userManager = userManager;
             _helper = helper;
+            _tokenManager = tokenManager;
         }
 
         /// <summary>
@@ -29,14 +31,17 @@ namespace QueueMessageSender.Controllers
             UserModel user = _userManager.GetAsync(username: authData.Username).GetAwaiter().GetResult();
 
             if (!(user != null && user.Username == authData.Username && user.Password == _helper.GetHash(authData.Password)))
-                if (await _userManager.CreateAsync(authData.Username, authData.Password))
+            {
+                if (await _userManager.CreateAsync(authData.Username, authData.Password) > 0)
                 {
                     return Created(string.Empty,
-                        new 
+                        new
                         {
                             Message = "Credentials were recorded and saved."
                         });
                 }
+            }
+
             return BadRequest(
                 new ErrorModel
                 {
@@ -48,18 +53,23 @@ namespace QueueMessageSender.Controllers
         /// Method to delete a record from the database.
         /// </summary>
         [HttpDelete]
-        public async Task<IActionResult> DeleteAsync(int id)
+        public async Task<IActionResult> DeleteAsync([FromQuery]int id)
         {
             UserModel user = await _userManager.GetAsync(id: id);
+
             if (user != null)
-                if (await _userManager.DeleteAsync(id))
+            {
+                if (await _userManager.DeleteAsync(id) > 0
+                    && await _tokenManager.DeleteTokensAsync(userId: id) >= 0)
                 {
                     return Ok(
-                        new 
+                        new
                         {
                             Message = "Credentials have been deleted."
                         });
                 }
+            }
+
             return NotFound(
                 new ErrorModel
                 {
