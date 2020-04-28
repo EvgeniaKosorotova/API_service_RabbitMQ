@@ -50,13 +50,13 @@ namespace QueueMessageSender.Controllers
             var accessToken = _authenticationJWT.CreateAccessToken(user.Username);
             var refreshToken = _authenticationJWT.CreateRefreshToken();
 
-            if (await _tokenManager.AddTokenAsync(user, refreshToken) > 0)
+            if (await _tokenManager.AddTokenAsync(user, refreshToken))
             {
                 return Ok(
                     new AuthenticationResultModel
                     {
                         AccessToken = accessToken,
-                        LifeTime = TimeSpan.ParseExact(_configuration.GetSection("Settings:JWT:AccessToken:Expiry").Value, "c", null),
+                        LifeTime = _configuration.GetValue<TimeSpan>("Settings:JWT:AccessToken:Expiry"),
                         RefreshToken = refreshToken
                     });
             }
@@ -89,14 +89,14 @@ namespace QueueMessageSender.Controllers
             var newAccessToken = _authenticationJWT.CreateAccessToken(user.Username);
             var newRefreshToken = _authenticationJWT.CreateRefreshToken();
 
-            if (await _tokenManager.DeleteAsync(refreshToken) > 0 
-                && await _tokenManager.AddTokenAsync(user, newRefreshToken) > 0)
+            if (await _tokenManager.DeleteAsync(refreshToken) 
+                && await _tokenManager.AddTokenAsync(user, newRefreshToken))
             {
                 return Ok(
                     new AuthenticationResultModel
                     {
                         AccessToken = newAccessToken,
-                        LifeTime = TimeSpan.ParseExact(_configuration.GetSection("Settings:JWT:AccessToken:Expiry").Value, "c", null),
+                        LifeTime = _configuration.GetValue<TimeSpan>("Settings:JWT:AccessToken:Expiry"),
                         RefreshToken = newRefreshToken
                     });
             }

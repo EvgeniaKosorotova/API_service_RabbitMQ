@@ -13,6 +13,7 @@ using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using QueueMessageSender.Controllers.Models;
 using QueueMessageSender.Logic;
+using QueueMessageSender.Models;
 using System.Text;
 
 namespace QueueMessageSender
@@ -32,7 +33,7 @@ namespace QueueMessageSender
             services.AddControllers();
             services.AddSingleton<IQueueMessageSender, RMQMessageSender>();
             services.AddSingleton<AuthenticationJWT>();
-            services.AddSingleton<Helper>();
+            services.AddSingleton<HashGenerator>();
             services.AddScoped<ITokenManager, TokenManager>();
             services.AddScoped<IUserManager, UserManager>();
             services.AddDbContext<DataContext>(options =>

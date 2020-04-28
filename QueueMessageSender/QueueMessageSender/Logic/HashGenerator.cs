@@ -3,7 +3,7 @@ using System;
 
 namespace QueueMessageSender.Logic
 {
-    public class Helper
+    public class HashGenerator
     {
         public string GetHash(string str)
         {

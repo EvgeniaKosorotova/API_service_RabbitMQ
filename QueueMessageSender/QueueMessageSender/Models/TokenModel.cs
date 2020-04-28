@@ -9,5 +9,7 @@ namespace QueueMessageSender.Models
         public int Id { get; set; }
         public int IdUser { get; set; }
         public string RefreshToken { get; set; }
+
+        public virtual UserModel IdUserNavigation { get; set; }
     }
 }

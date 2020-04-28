@@ -5,9 +5,9 @@ namespace QueueMessageSender.Logic
 {
     public interface ITokenManager
     {
-        Task<int> AddTokenAsync(UserModel user, string refreshToken);
-        Task<int> GetUser(string token = "");
-        Task<int> DeleteAsync(string token);
-        Task<int> DeleteTokensAsync(int userId);
+        Task<bool> AddTokenAsync(UserModel user, string refreshToken);
+        Task<int?> GetUser(string token = "");
+        Task<bool> DeleteAsync(string token);
+        Task<bool> DeleteTokensAsync(int userId);
     }
 }
