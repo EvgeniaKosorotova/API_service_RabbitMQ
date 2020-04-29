@@ -42,7 +42,7 @@ namespace QueueMessageSender.Logic
             return await db.SaveChangesAsync() > 0 ? true: false;
         }
 
-        public async Task<UserModel> GetAsync(int id = 0, string username = null, string password = null)
+        public async Task<UserModel> GetAsync(int? id = null, string username = null, string password = null)
         {
             if (id != 0)
             {
