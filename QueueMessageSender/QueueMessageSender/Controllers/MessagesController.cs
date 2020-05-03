@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using QueueMessageSender.Controllers.Models;
 using QueueMessageSender.Logic;
@@ -10,6 +11,7 @@ namespace QueueMessageSender.Controllers
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("[controller]")]
     [ApiController]
+    [EnableCors("CorsPolicy")]
     [Produces("application/json")]
     public class MessagesController : ControllerBase
     {

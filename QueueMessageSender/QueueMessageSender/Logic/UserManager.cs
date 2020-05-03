@@ -44,7 +44,7 @@ namespace QueueMessageSender.Logic
 
         public async Task<UserModel> GetAsync(int? id = null, string username = null, string password = null)
         {
-            if (id != 0)
+            if (id != null)
             {
                 return await db.Users.FirstOrDefaultAsync(u => u.Id.Equals(id));
             }

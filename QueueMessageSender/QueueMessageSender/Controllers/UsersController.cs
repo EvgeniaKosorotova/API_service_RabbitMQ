@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Mvc;
 using QueueMessageSender.Controllers.Models;
 using QueueMessageSender.Logic;
 using QueueMessageSender.Logic.Models;
@@ -8,6 +9,7 @@ namespace QueueMessageSender.Controllers
 {
     [Route("[controller]")]
     [ApiController]
+    [EnableCors("CorsPolicy")]
     [Produces("application/json")]
     public class UsersController : ControllerBase
     {
