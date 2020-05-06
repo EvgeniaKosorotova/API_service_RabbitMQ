@@ -1,4 +1,4 @@
-﻿namespace QueueMessageSender.Logic.Models
+﻿namespace QueueMessageSender.Models
 {
     /// <summary>
     /// The data model includes a message and data for sending messages for RabbitMQ.

@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using QueueMessageSender.Logic.Models;
 using QueueMessageSender.Models;
 using System.Threading.Tasks;
 
@@ -19,18 +18,20 @@ namespace QueueMessageSender.Logic
             _hashGenerator = hashGenerator;
         }
 
-        public async Task<bool> CreateAsync(string username, string password)
+        public async Task<UserModel> CreateAsync(string username, string password)
         {
-            await db.Users.AddAsync(new UserModel
+            var user = await db.Users.AddAsync(new UserModel
             {
                 Username = username,
                 Password = _hashGenerator.GetHash(password)
             });
 
-            return await db.SaveChangesAsync() > 0 ? true : false;
+            await db.SaveChangesAsync();
+
+            return user.Entity;
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task DeleteAsync(int id)
         {
             UserModel user = await db.Users.FirstOrDefaultAsync(u => u.Id.Equals(id));
 
@@ -39,29 +40,22 @@ namespace QueueMessageSender.Logic
                 db.Users.Remove(user);
             }
 
-            return await db.SaveChangesAsync() > 0 ? true: false;
+            await db.SaveChangesAsync();
         }
 
-        public async Task<UserModel> GetAsync(int? id = null, string username = null, string password = null)
+        public async Task<UserModel> GetByIdAsync(int? id = null)
         {
-            if (id != null)
-            {
-                return await db.Users.FirstOrDefaultAsync(u => u.Id.Equals(id));
-            }
+            return await db.Users.FirstOrDefaultAsync(u => u.Id.Equals(id));
+        }
 
-            if (username != null)
-            {
-                if (password != null)
-                {
-                    return await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username) && u.Password.Equals(_hashGenerator.GetHash(password)));
-                }
-                else
-                {
-                    return await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username));
-                }
-            }
+        public async Task<UserModel> GetByCredentialsAsync(string username = null, string password = null)
+        {
+            return await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username) && u.Password.Equals(_hashGenerator.GetHash(password)));
+        }
 
-            return null;
+        public async Task<UserModel> GetByUsernameAsync(string username = null)
+        {
+            return await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username));
         }
     }
 }

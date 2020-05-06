@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using QueueMessageSender.Logic.Models;
 
 namespace QueueMessageSender.Models
 {
@@ -30,15 +29,16 @@ namespace QueueMessageSender.Models
         {
             modelBuilder.Entity<TokenModel>(entity =>
             {
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Id).HasColumnName("Id");
 
-                entity.Property(e => e.IdUser).HasColumnName("idUser");
+                entity.Property(e => e.IdUser).HasColumnName("IdUser");
 
                 entity.Property(e => e.RefreshToken)
                     .IsRequired()
-                    .HasColumnName("refreshToken");
+                    .HasColumnName("RefreshToken")
+                    .HasMaxLength(250); ;
 
-                entity.HasOne(d => d.IdUserNavigation)
+                entity.HasOne(d => d.User)
                     .WithMany(p => p.Tokens)
                     .HasForeignKey(d => d.IdUser)
                     .HasConstraintName("FK_Tokens_Users");
@@ -46,16 +46,16 @@ namespace QueueMessageSender.Models
 
             modelBuilder.Entity<UserModel>(entity =>
             {
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Id).HasColumnName("Id");
 
                 entity.Property(e => e.Password)
                     .IsRequired()
-                    .HasColumnName("password")
+                    .HasColumnName("Password")
                     .HasMaxLength(50);
 
                 entity.Property(e => e.Username)
                     .IsRequired()
-                    .HasColumnName("username")
+                    .HasColumnName("Username")
                     .HasMaxLength(50);
             });
 

@@ -2,9 +2,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using QueueMessageSender.Controllers.Models;
 using QueueMessageSender.Logic;
-using QueueMessageSender.Logic.Models;
+using QueueMessageSender.Models;
 
 namespace QueueMessageSender.Controllers
 {

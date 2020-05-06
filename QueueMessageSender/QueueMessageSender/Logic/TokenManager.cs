@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using QueueMessageSender.Logic.Models;
 using QueueMessageSender.Models;
 using System.Threading.Tasks;
 
@@ -17,42 +16,47 @@ namespace QueueMessageSender.Logic
             db = context;
         }
 
-        public async Task<bool> AddTokenAsync(UserModel user, string refreshToken) 
+        public async Task<TokenModel> AddTokenAsync(UserModel user, string refreshToken) 
         {
-            await db.Tokens.AddAsync(new TokenModel
+            var tokens = await db.Tokens.AddAsync(new TokenModel
             {
                 IdUser = user.Id,
                 RefreshToken = refreshToken
             });
+            await db.SaveChangesAsync();
 
-            return await db.SaveChangesAsync() > 0 ? true: false;
+            return tokens.Entity;
         }
 
-        public async Task<int?> GetUser(string token = "")
+        public async Task<UserModel> GetUser(string token = "")
         {
             var tokenObj = await db.Tokens.FirstOrDefaultAsync(t => t.RefreshToken.Equals(token));
 
-            return tokenObj.IdUser;
+            return tokenObj.User;
         }
 
-        public async Task<bool> DeleteAsync(string token)
+        public async Task DeleteAsync(string token)
         {
             TokenModel tokenObj = await db.Tokens.FirstOrDefaultAsync(t => t.RefreshToken.Equals(token));
+
             if (tokenObj != null)
             {
                 db.Tokens.Remove(tokenObj);
             }
-            return await db.SaveChangesAsync() > 0 ? true: false;
+
+            await db.SaveChangesAsync();
         }
 
-        public async Task<bool> DeleteTokensAsync(int userId)
+        public async Task DeleteTokensAsync(int userId)
         {
             var tokenObj = await db.Tokens.FindAsync(userId);
+
             if (tokenObj != null)
             {
                 db.Tokens.RemoveRange(tokenObj);
             }
-            return await db.SaveChangesAsync() > 0 ? true : false;
+
+            await db.SaveChangesAsync();
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using QueueMessageSender.Logic.Models;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace QueueMessageSender.Models
 {
@@ -10,6 +9,6 @@ namespace QueueMessageSender.Models
         public int IdUser { get; set; }
         public string RefreshToken { get; set; }
 
-        public virtual UserModel IdUserNavigation { get; set; }
+        public virtual UserModel User { get; set; }
     }
 }

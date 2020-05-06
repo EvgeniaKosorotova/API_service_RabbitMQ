@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace QueueMessageSender.Controllers.Models
+namespace QueueMessageSender.Models
 {
     /// <summary>
     /// The model of the data received in the POST request, with verification.

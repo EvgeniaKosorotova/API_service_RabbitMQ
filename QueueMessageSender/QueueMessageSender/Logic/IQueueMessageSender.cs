@@ -1,4 +1,4 @@
-﻿using QueueMessageSender.Logic.Models;
+﻿using QueueMessageSender.Models;
 
 namespace QueueMessageSender.Logic
 {

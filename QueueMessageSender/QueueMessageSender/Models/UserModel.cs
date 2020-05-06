@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace QueueMessageSender.Logic.Models
+namespace QueueMessageSender.Models
 {
     public class UserModel
     {
