@@ -27,6 +27,12 @@ namespace QueueMessageSender.Controllers
         [HttpPost]
         public IActionResult Send(ReceivedDataModel model)
         {
+            if (!ModelState.IsValid) {
+                return BadRequest(new ErrorModel { 
+                    Error = "Incoming data is not valid."
+                });
+            }
+
             var departureData = new DepartureDatаRMQModel
             {
                 NameExchange = model.Exchange,

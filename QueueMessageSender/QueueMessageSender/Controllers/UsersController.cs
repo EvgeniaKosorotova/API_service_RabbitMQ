@@ -27,6 +27,14 @@ namespace QueueMessageSender.Controllers
         [HttpPost]
         public async Task<IActionResult> RegisterAsync(AuthenticationModel authData)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new ErrorModel
+                {
+                    Error = "Incoming data is not valid."
+                });
+            }
+
             UserModel user = await _userManager.GetByUsernameAsync(username: authData.Username);
 
             if (user == null)
@@ -49,6 +57,14 @@ namespace QueueMessageSender.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteAsync([FromRoute]int id)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new ErrorModel
+                {
+                    Error = "Incoming data is not valid."
+                });
+            }
+
             UserModel user = await _userManager.GetByIdAsync(id: id);
 
             if (user != null)

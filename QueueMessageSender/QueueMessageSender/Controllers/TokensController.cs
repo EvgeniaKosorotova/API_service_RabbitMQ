@@ -39,6 +39,14 @@ namespace QueueMessageSender.Controllers
         [HttpPost]
         public async Task<IActionResult> LoginAsync(AuthenticationModel authData)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new ErrorModel
+                {
+                    Error = "Incoming data is not valid."
+                });
+            }
+
             UserModel user = await _userManager.GetByCredentialsAsync(username: authData.Username, password: authData.Password);
 
             if (user == null)
