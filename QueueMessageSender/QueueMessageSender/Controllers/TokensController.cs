@@ -59,7 +59,7 @@ namespace QueueMessageSender.Controllers
         /// Method of updating access tokens and refresh.
         /// </summary>
         [HttpPut]
-        public async Task<IActionResult> RefreshAsync(string refreshToken)
+        public async Task<IActionResult> RefreshAsync([FromQuery]string refreshToken)
         {
             var user = await _tokenManager.GetUser(token: refreshToken);
 

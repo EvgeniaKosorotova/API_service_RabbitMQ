@@ -41,7 +41,7 @@ namespace QueueMessageSender
             services.AddSingleton<IQueueMessageSender, RMQMessageSender>();
             services.AddSingleton<AuthenticationJWT>();
             services.AddSingleton<HashGenerator>();
-            services.AddSingleton<ServiceTokens>();
+            services.AddScoped<ServiceTokens>();
             services.AddScoped<ITokenManager, TokenManager>();
             services.AddScoped<IUserManager, UserManager>();
             services.AddDbContext<DataContext>(options =>
