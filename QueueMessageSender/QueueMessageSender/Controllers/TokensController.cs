@@ -9,7 +9,6 @@ namespace QueueMessageSender.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    [EnableCors("CorsPolicy")]
     [Produces("application/json")]
     public class TokensController : ControllerBase
     {

@@ -10,7 +10,6 @@ namespace QueueMessageSender.Controllers
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("[controller]")]
     [ApiController]
-    [EnableCors("CorsPolicy")]
     [Produces("application/json")]
     public class MessagesController : ControllerBase
     {

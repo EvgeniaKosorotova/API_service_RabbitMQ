@@ -28,14 +28,7 @@ namespace QueueMessageSender
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCors(options =>
-            {
-                options.AddPolicy("CorsPolicy",
-                    builder => builder.AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader());
-            });
-
+            services.AddCors();
             services.AddMvcCore().AddDataAnnotations();
             services.AddControllers();
             services.AddSingleton<IQueueMessageSender, RMQMessageSender>();
@@ -97,7 +90,9 @@ namespace QueueMessageSender
                 }));
             }
             app.UseRouting();
-            app.UseCors("CorsPolicy");
+            app.UseCors(builder => builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader());
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
