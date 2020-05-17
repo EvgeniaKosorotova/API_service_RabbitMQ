@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace QueueMessageSender.Controllers.Models
+namespace QueueMessageSender.Models
 {
     /// <summary>
     /// Credential model

@@ -5,10 +5,11 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using QueueMessageSender.Logic;
+using QueueMessageSender.Models;
 
 namespace QueueMessageSender.Migrations
 {
-    [DbContext(typeof(UserContext))]
+    [DbContext(typeof(DataContext))]
     [Migration("20200210105650_InitialCreate")]
     partial class InitialCreate
     {

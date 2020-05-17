@@ -1,15 +1,14 @@
-﻿using QueueMessageSender.Logic.Models;
+﻿using QueueMessageSender.Models;
 using System.Threading.Tasks;
 
 namespace QueueMessageSender.Logic
 {
     public interface IUserManager
     {
-        Task<bool> CreateAsync(string username, string password);
-        Task<UserModel> GetAsync(int id = 0, string username = null, string password = null, string token = null);
-        Task<bool> UpdateTokenAsync(string username, string refreshToken);
-        Task<bool> DeleteAsync(int id);
-        Task<bool> SaveAsync();
-        string GetHash(string password);
+        Task<UserModel> CreateAsync(string username, string password);
+        Task<UserModel> GetByIdAsync(int? id = null);
+        Task<UserModel> GetByCredentialsAsync(string username = null, string password = null);
+        Task<UserModel> GetByUsernameAsync(string username = null);
+        Task DeleteAsync(int id);
     }
 }

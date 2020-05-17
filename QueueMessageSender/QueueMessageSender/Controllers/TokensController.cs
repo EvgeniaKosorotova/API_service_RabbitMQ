@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using QueueMessageSender.Controllers.Models;
 using QueueMessageSender.Logic;
-using QueueMessageSender.Logic.Models;
-using System;
+using QueueMessageSender.Models;
 using System.Threading.Tasks;
 
 namespace QueueMessageSender.Controllers
@@ -16,14 +14,20 @@ namespace QueueMessageSender.Controllers
         private readonly IUserManager _userManager;
         private readonly AuthenticationJWT _authenticationJWT;
         private readonly IConfiguration _configuration;
+        private readonly ITokenManager _tokenManager;
+        private readonly ServiceTokens _serviceTokens;
 
         public TokensController(IUserManager userManager,
                                   AuthenticationJWT authenticationJWT,
-                                  IConfiguration configuration)
+                                  IConfiguration configuration,
+                                  ITokenManager tokenManager,
+                                  ServiceTokens serviceTokens)
         {
             _userManager = userManager;
             _authenticationJWT = authenticationJWT;
             _configuration = configuration;
+            _tokenManager = tokenManager;
+            _serviceTokens = serviceTokens;
         }
 
         /// <summary>
@@ -33,7 +37,16 @@ namespace QueueMessageSender.Controllers
         [HttpPost]
         public async Task<IActionResult> LoginAsync(AuthenticationModel authData)
         {
-            UserModel user = await _userManager.GetAsync(username: authData.Username, password: authData.Password);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new ErrorModel
+                {
+                    Error = "Incoming data is not valid."
+                });
+            }
+
+            UserModel user = await _userManager.GetByCredentialsAsync(username: authData.Username, password: authData.Password);
+
             if (user == null)
             {
                 return BadRequest(
@@ -42,58 +55,33 @@ namespace QueueMessageSender.Controllers
                         Error = "Username and password are invalid."
                     });
             }
-            var accessToken = _authenticationJWT.CreateAccessToken(user.Username);
-            var refreshToken = _authenticationJWT.CreateRefreshToken();
-            if (await _userManager.UpdateTokenAsync(user.Username, refreshToken))
-            {
-                return Ok(
-                    new AuthenticationResultModel
-                    {
-                        AccessToken = accessToken,
-                        LifeTime = TimeSpan.FromMinutes(_configuration.GetValue<double>("Settings:JWT:AccessToken:ExpiryInMinutes")),
-                        RefreshToken = refreshToken
-                    });
-            }
-            return BadRequest(
-                new ErrorModel
-                {
-                    Error = "Tokens have not been created."
-                });
+
+            var authenticationResult = await _serviceTokens.CreateTokensAsync(user);
+
+            return Ok(authenticationResult);
         }
 
         /// <summary>
         /// Method of updating access tokens and refresh.
         /// </summary>
         [HttpPut]
-        public async Task<IActionResult> RefreshAsync(string refreshToken)
+        public async Task<IActionResult> RefreshAsync([FromQuery]string refreshToken)
         {
-            UserModel user = await _userManager.GetAsync(token: refreshToken);
-            if (user != null) 
-            {
-                var newAccessToken = _authenticationJWT.CreateAccessToken(user.Username);
-                var newRefreshToken = _authenticationJWT.CreateRefreshToken();
-                if (await _userManager.UpdateTokenAsync(user.Username, refreshToken))
-                {
-                    return Ok(
-                        new AuthenticationResultModel
-                        {
-                            AccessToken = newAccessToken,
-                            LifeTime = TimeSpan.FromMinutes(_configuration.GetValue<double>("Settings:JWT:AccessToken:ExpiryInMinutes")),
-                            RefreshToken = newRefreshToken
-                        });
-                }
-                return BadRequest(
-                    new ErrorModel
-                    {
-                        Error = "Tokens have not been created."
-                    });
-            }
+            var user = await _tokenManager.GetUser(token: refreshToken);
 
-            return BadRequest(
+            if (user == null) 
+            {
+                return BadRequest(
                     new ErrorModel
                     {
                         Error = "Token is invalid."
                     });
+            }
+            await _tokenManager.DeleteAsync(refreshToken);
+
+            var authenticationResult = await _serviceTokens.CreateTokensAsync(user);
+
+            return Ok(authenticationResult);
         }
     }
 }

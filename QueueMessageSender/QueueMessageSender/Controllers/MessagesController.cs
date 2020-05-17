@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using QueueMessageSender.Controllers.Models;
 using QueueMessageSender.Logic;
-using QueueMessageSender.Logic.Models;
+using QueueMessageSender.Models;
 
 namespace QueueMessageSender.Controllers
 {
@@ -26,6 +25,12 @@ namespace QueueMessageSender.Controllers
         [HttpPost]
         public IActionResult Send(ReceivedDataModel model)
         {
+            if (!ModelState.IsValid) {
+                return BadRequest(new ErrorModel { 
+                    Error = "Incoming data is not valid."
+                });
+            }
+
             var departureData = new DepartureDatаRMQModel
             {
                 NameExchange = model.Exchange,

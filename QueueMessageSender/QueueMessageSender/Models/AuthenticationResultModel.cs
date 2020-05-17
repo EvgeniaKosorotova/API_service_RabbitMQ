@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace QueueMessageSender.Controllers.Models
+namespace QueueMessageSender.Models
 {
     public class AuthenticationResultModel
     {

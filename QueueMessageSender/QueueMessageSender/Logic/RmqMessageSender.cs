@@ -1,5 +1,5 @@
 using Polly;
-using QueueMessageSender.Logic.Models;
+using QueueMessageSender.Models;
 using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;

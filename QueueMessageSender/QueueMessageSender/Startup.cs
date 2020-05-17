@@ -11,8 +11,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
-using QueueMessageSender.Controllers.Models;
 using QueueMessageSender.Logic;
+using QueueMessageSender.Models;
 using System.Text;
 
 namespace QueueMessageSender
@@ -28,12 +28,16 @@ namespace QueueMessageSender
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors();
             services.AddMvcCore().AddDataAnnotations();
             services.AddControllers();
             services.AddSingleton<IQueueMessageSender, RMQMessageSender>();
             services.AddSingleton<AuthenticationJWT>();
+            services.AddSingleton<HashGenerator>();
+            services.AddScoped<ServiceTokens>();
+            services.AddScoped<ITokenManager, TokenManager>();
             services.AddScoped<IUserManager, UserManager>();
-            services.AddDbContext<UserContext>(options =>
+            services.AddDbContext<DataContext>(options =>
                 {
                     options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
                 });
@@ -86,6 +90,9 @@ namespace QueueMessageSender
                 }));
             }
             app.UseRouting();
+            app.UseCors(builder => builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader());
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {

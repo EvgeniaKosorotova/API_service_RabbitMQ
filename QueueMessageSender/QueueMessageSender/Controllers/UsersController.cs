@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using QueueMessageSender.Controllers.Models;
 using QueueMessageSender.Logic;
-using QueueMessageSender.Logic.Models;
+using QueueMessageSender.Models;
 using System.Threading.Tasks;
 
 namespace QueueMessageSender.Controllers
@@ -12,10 +11,12 @@ namespace QueueMessageSender.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserManager _userManager;
+        private readonly ITokenManager _tokenManager;
 
-        public UsersController(IUserManager userManager)
+        public UsersController(IUserManager userManager, ITokenManager tokenManager)
         {
             _userManager = userManager;
+            _tokenManager = tokenManager;
         }
 
         /// <summary>
@@ -24,17 +25,23 @@ namespace QueueMessageSender.Controllers
         [HttpPost]
         public async Task<IActionResult> RegisterAsync(AuthenticationModel authData)
         {
-            UserModel user = _userManager.GetAsync(username: authData.Username).GetAwaiter().GetResult();
-
-            if (!(user != null && user.Username == authData.Username && user.Password == _userManager.GetHash(authData.Password)))
-                if (await _userManager.CreateAsync(authData.Username, authData.Password))
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new ErrorModel
                 {
-                    return Created(string.Empty,
-                        new 
-                        {
-                            Message = "Credentials were recorded and saved."
-                        });
-                }
+                    Error = "Incoming data is not valid."
+                });
+            }
+
+            UserModel user = await _userManager.GetByUsernameAsync(username: authData.Username);
+
+            if (user == null)
+            {
+                UserModel userNew = await _userManager.CreateAsync(authData.Username, authData.Password);
+
+                return Created(string.Empty, userNew);
+            }
+
             return BadRequest(
                 new ErrorModel
                 {
@@ -45,19 +52,31 @@ namespace QueueMessageSender.Controllers
         /// <summary>
         /// Method to delete a record from the database.
         /// </summary>
-        [HttpDelete]
-        public async Task<IActionResult> DeleteAsync(int id)
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> DeleteAsync([FromRoute]int id)
         {
-            UserModel user = await _userManager.GetAsync(id: id);
-            if (user != null)
-                if (await _userManager.DeleteAsync(id))
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new ErrorModel
                 {
-                    return Ok(
-                        new 
-                        {
-                            Message = "Credentials have been deleted."
-                        });
-                }
+                    Error = "Incoming data is not valid."
+                });
+            }
+
+            UserModel user = await _userManager.GetByIdAsync(id: id);
+
+            if (user != null)
+            {
+                await _userManager.DeleteAsync(id);
+                await _tokenManager.DeleteTokensAsync(userId: id);
+
+                return Ok(
+                    new MessageModel
+                    {
+                        Message = "Credentials have been deleted."
+                    });
+            }
+
             return NotFound(
                 new ErrorModel
                 {
