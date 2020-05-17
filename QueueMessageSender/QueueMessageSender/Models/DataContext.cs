@@ -48,10 +48,6 @@ namespace QueueMessageSender.Models
                     .HasColumnName("Username")
                     .HasMaxLength(50);
             });
-
-            //OnModelCreatingPartial(modelBuilder);
         }
-
-        //partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
     }
 }

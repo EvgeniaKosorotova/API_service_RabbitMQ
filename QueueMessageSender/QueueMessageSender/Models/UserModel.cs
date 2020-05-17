@@ -1,16 +1,10 @@
-﻿using QueueMessageSender.Models;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace QueueMessageSender.Models
 {
     public class UserModel
     {
-        public UserModel()
-        {
-            Tokens = new HashSet<TokenModel>();
-        }
-
         [Key]
         public int Id { get; set; }
         public string Username { get; set; }
