@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace QueueMessageSender.Models
 {
@@ -6,9 +7,8 @@ namespace QueueMessageSender.Models
     {
         [Key]
         public int Id { get; set; }
-        public int IdUser { get; set; }
         public string RefreshToken { get; set; }
-
-        public virtual UserModel User { get; set; }
+        [ForeignKey("idUser")]
+        public UserModel User { get; set; }
     }
 }
