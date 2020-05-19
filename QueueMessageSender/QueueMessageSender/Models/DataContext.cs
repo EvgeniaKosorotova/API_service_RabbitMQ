@@ -12,7 +12,7 @@ namespace QueueMessageSender.Models
         {
         }
 
-        DbSet<TokenModel> Tokens { get; set; }
-        DbSet<UserModel> Users { get; set; }
+        public DbSet<TokenModel> Tokens { get; set; }
+        public DbSet<UserModel> Users { get; set; }
     }
 }
