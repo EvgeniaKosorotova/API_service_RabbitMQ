@@ -20,6 +20,7 @@ namespace QueueMessageSender.Logic
         {
             var tokens = await db.Tokens.AddAsync(new TokenModel
             {
+                UserId = user.Id,
                 User = user,
                 RefreshToken = refreshToken
             });

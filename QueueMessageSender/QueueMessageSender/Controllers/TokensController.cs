@@ -12,20 +12,14 @@ namespace QueueMessageSender.Controllers
     public class TokensController : ControllerBase
     {
         private readonly IUserManager _userManager;
-        private readonly AuthenticationJWT _authenticationJWT;
-        private readonly IConfiguration _configuration;
         private readonly ITokenManager _tokenManager;
         private readonly ServiceTokens _serviceTokens;
 
         public TokensController(IUserManager userManager,
-                                  AuthenticationJWT authenticationJWT,
-                                  IConfiguration configuration,
                                   ITokenManager tokenManager,
                                   ServiceTokens serviceTokens)
         {
             _userManager = userManager;
-            _authenticationJWT = authenticationJWT;
-            _configuration = configuration;
             _tokenManager = tokenManager;
             _serviceTokens = serviceTokens;
         }
