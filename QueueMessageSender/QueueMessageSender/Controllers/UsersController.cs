@@ -23,7 +23,7 @@ namespace QueueMessageSender.Controllers
         /// A method of registering and saving new credentials in a database.
         /// </summary>
         [HttpPost]
-        public async Task<IActionResult> RegisterAsync(AuthenticationModel authData)
+        public async Task<IActionResult> RegisterAsync(RegistrationModel registData)
         {
             if (!ModelState.IsValid)
             {
@@ -33,11 +33,11 @@ namespace QueueMessageSender.Controllers
                 });
             }
 
-            UserModel user = await _userManager.GetByUsernameAsync(username: authData.Username);
+            UserModel user = await _userManager.GetByUsernameAsync(username: registData.Username);
 
             if (user == null)
             {
-                UserModel userNew = await _userManager.CreateAsync(authData.Username, authData.Password);
+                UserModel userNew = await _userManager.CreateAsync(registData.Username, registData.Password, registData.Role);
 
                 return Created(string.Empty, userNew);
             }

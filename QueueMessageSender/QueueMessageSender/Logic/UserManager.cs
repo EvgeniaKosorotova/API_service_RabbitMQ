@@ -11,19 +11,29 @@ namespace QueueMessageSender.Logic
     {
         private static DataContext db;
         private readonly HashGenerator _hashGenerator;
+        private readonly IRoleManager _roleManager;
 
-        public UserManager(DataContext context, HashGenerator hashGenerator)
+        public UserManager(DataContext context, HashGenerator hashGenerator, IRoleManager roleManager)
         {
             db = context;
             _hashGenerator = hashGenerator;
+            _roleManager = roleManager;
         }
 
-        public async Task<UserModel> CreateAsync(string username, string password)
+        public async Task<UserModel> CreateAsync(string username, string password, string role)
         {
+            RoleModel roleObj = await _roleManager.GetAsync(role);
+
+            if (roleObj == null)
+            {
+                roleObj = await _roleManager.AddAsync(role);
+            }
+
             var user = await db.Users.AddAsync(new UserModel
             {
                 Username = username,
-                Password = _hashGenerator.GetHash(password)
+                Password = _hashGenerator.GetHash(password),
+                RoleId = roleObj.Id
             });
 
             await db.SaveChangesAsync();

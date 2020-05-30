@@ -10,8 +10,8 @@ namespace QueueMessageSender.Models
         public int Id { get; set; }
         [MaxLength(25)]
         public string RefreshToken { get; set; }
-        public int UserId { get; set; }
         [ForeignKey("UserId")]
-        public UserModel User { get; set; }
+        public int UserId { get; set; }
+        public virtual UserModel User { get; set; }
     }
 }

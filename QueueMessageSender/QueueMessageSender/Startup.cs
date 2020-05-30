@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using QueueMessageSender.Logic;
 using QueueMessageSender.Models;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace QueueMessageSender
 {
@@ -35,6 +36,7 @@ namespace QueueMessageSender
             services.AddSingleton<HashGenerator>();
             services.AddScoped<ServiceTokens>();
             services.AddScoped<ITokenManager, TokenManager>();
+            services.AddScoped<IRoleManager, RoleManager>();
             services.AddScoped<IUserManager, UserManager>();
             services.AddDbContext<DataContext>(options =>
                 {
@@ -63,9 +65,9 @@ namespace QueueMessageSender
             });
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public async void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            UpdateDatabase(app);
+            await Initializer.InitializeAsync(app);
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
@@ -97,19 +99,6 @@ namespace QueueMessageSender
             {
                 endpoints.MapControllers();
             });
-        }
-
-        private static void UpdateDatabase(IApplicationBuilder app)
-        {
-            using (var serviceScope = app.ApplicationServices
-                .GetRequiredService<IServiceScopeFactory>()
-                .CreateScope())
-            {
-                using (var context = serviceScope.ServiceProvider.GetService<DataContext>())
-                {
-                    context.Database.Migrate();
-                }
-            }
         }
     }
 }

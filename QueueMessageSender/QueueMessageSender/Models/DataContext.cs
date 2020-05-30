@@ -14,6 +14,7 @@ namespace QueueMessageSender.Models
 
         public DbSet<TokenModel> Tokens { get; set; }
         public DbSet<UserModel> Users { get; set; }
+        public DbSet<RoleModel> Roles { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlServer(_configuration.GetConnectionString("DefaultConnection"));

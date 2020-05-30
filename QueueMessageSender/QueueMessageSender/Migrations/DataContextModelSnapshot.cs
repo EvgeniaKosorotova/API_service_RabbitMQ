@@ -63,8 +63,8 @@ namespace QueueMessageSender.Migrations
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("Password")
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
+                        .HasColumnType("nvarchar(50)")
+                        .HasMaxLength(50);
 
                     b.Property<int>("RoleId")
                         .HasColumnType("int");
@@ -83,7 +83,7 @@ namespace QueueMessageSender.Migrations
             modelBuilder.Entity("QueueMessageSender.Models.TokenModel", b =>
                 {
                     b.HasOne("QueueMessageSender.Models.UserModel", "User")
-                        .WithMany("Tokens")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

@@ -9,8 +9,8 @@ using QueueMessageSender.Models;
 namespace QueueMessageSender.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20200525204058_AddDataAnnotations")]
-    partial class AddDataAnnotations
+    [Migration("20200530103300_AddRoles")]
+    partial class AddRoles
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -65,8 +65,8 @@ namespace QueueMessageSender.Migrations
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("Password")
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
+                        .HasColumnType("nvarchar(50)")
+                        .HasMaxLength(50);
 
                     b.Property<int>("RoleId")
                         .HasColumnType("int");
@@ -85,7 +85,7 @@ namespace QueueMessageSender.Migrations
             modelBuilder.Entity("QueueMessageSender.Models.TokenModel", b =>
                 {
                     b.HasOne("QueueMessageSender.Models.UserModel", "User")
-                        .WithMany("Tokens")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
