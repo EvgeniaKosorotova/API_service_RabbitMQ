@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using QueueMessageSender.Models;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace QueueMessageSender.Logic
@@ -66,6 +67,11 @@ namespace QueueMessageSender.Logic
         public async Task<UserModel> GetByUsernameAsync(string username = null)
         {
             return await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username));
+        }
+
+        public async Task<List<UserModel>> GetAllAsync()
+        {
+            return await db.Users.ToListAsync();
         }
     }
 }

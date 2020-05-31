@@ -83,5 +83,20 @@ namespace QueueMessageSender.Controllers
                     Error = "No credentials were found or deleted."
                 });
         }
+
+        /// <summary>
+        /// A method of getting list users from the database.
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetAsync()
+        {
+            var users = await _userManager.GetAllAsync();
+
+            return Ok(
+                new UsersResultModel
+                {
+                    Users = users
+                });
+        }
     }
 }

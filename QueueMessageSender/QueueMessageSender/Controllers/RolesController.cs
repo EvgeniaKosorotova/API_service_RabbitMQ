@@ -18,7 +18,7 @@ namespace QueueMessageSender.Controllers
         }
 
         /// <summary>
-        /// 
+        /// A method of getting list roles from the database.
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetAsync()
