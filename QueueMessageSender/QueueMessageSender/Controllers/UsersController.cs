@@ -70,18 +70,10 @@ namespace QueueMessageSender.Controllers
                 await _userManager.DeleteAsync(id);
                 await _tokenManager.DeleteTokensAsync(userId: id);
 
-                return Ok(
-                    new MessageModel
-                    {
-                        Message = "Credentials have been deleted."
-                    });
+                return Ok();
             }
 
-            return NotFound(
-                new ErrorModel
-                {
-                    Error = "No credentials were found or deleted."
-                });
+            return StatusCode(405);
         }
 
         /// <summary>
@@ -93,10 +85,28 @@ namespace QueueMessageSender.Controllers
             var users = await _userManager.GetAllAsync();
 
             return Ok(
-                new UsersResultModel
+                new UsersModel
                 {
                     Users = users
                 });
+        }
+
+        /// <summary>
+        /// Method of updating user.
+        /// </summary>
+        [HttpPut]
+        public async Task<IActionResult> UpdateAsync(UserModel user)
+        {
+            UserModel userObj = await _userManager.GetByIdAsync(id: user.Id);
+
+            if (userObj != null)
+            {
+                await _userManager.UpdateAsync(userObj, user);
+
+                return Ok();
+            }
+
+            return BadRequest();
         }
     }
 }

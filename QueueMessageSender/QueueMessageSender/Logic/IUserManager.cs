@@ -12,5 +12,6 @@ namespace QueueMessageSender.Logic
         Task<UserModel> GetByUsernameAsync(string username = null);
         Task DeleteAsync(int id);
         Task<List<UserModel>> GetAllAsync();
+        Task UpdateAsync(UserModel userOld, UserModel user);
     }
 }

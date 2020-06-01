@@ -33,7 +33,7 @@ namespace QueueMessageSender.Logic
         {
             var tokenObj = await db.Tokens.FirstOrDefaultAsync(t => t.RefreshToken.Equals(token));
 
-            return tokenObj.User;
+            return tokenObj?.User;
         }
 
         public async Task DeleteAsync(string token)

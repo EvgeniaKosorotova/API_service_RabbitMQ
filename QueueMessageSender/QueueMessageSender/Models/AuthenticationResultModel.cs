@@ -11,5 +11,6 @@ namespace QueueMessageSender.Models
         /// </summary>
         public TimeSpan LifeTime { get; set; }
         public string RefreshToken { get; set; }
+        public int RoleId { get; set; }
     }
 }

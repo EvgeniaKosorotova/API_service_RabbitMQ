@@ -73,5 +73,15 @@ namespace QueueMessageSender.Logic
         {
             return await db.Users.ToListAsync();
         }
+
+        public async Task UpdateAsync(UserModel userOld, UserModel user)
+        {
+            userOld.Username = user.Username;
+            userOld.RoleId = user.RoleId;
+            userOld.Password = user.Password;
+
+            db.Users.Update(userOld);
+            await db.SaveChangesAsync();
+        }
     }
 }
