@@ -73,5 +73,11 @@ namespace QueueMessageSender.Logic
         {
             return await db.Users.ToListAsync();
         }
+
+        public async Task UpdateRange(List<UserModel> users)
+        {
+            db.Users.UpdateRange(users);
+            await db.SaveChangesAsync();
+        }
     }
 }
