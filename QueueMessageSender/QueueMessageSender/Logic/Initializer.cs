@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using QueueMessageSender.Data.Models;
 using QueueMessageSender.Models;
 using System;
 using System.Linq;

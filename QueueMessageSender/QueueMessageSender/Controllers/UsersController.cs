@@ -85,9 +85,9 @@ namespace QueueMessageSender.Controllers
             var users = await _userManager.GetAllAsync();
 
             return Ok(
-                new UsersModel
+                new UsersModel<UserModel>
                 {
-                    Users = users
+                    Result = users
                 });
         }
 

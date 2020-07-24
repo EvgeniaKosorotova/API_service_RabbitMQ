@@ -1,6 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using QueueMessageSender.Data.Models;
 using QueueMessageSender.Models;
 using System.Threading.Tasks;
+using TokenModel = QueueMessageSender.Models.TokenModel;
+using UserModel = QueueMessageSender.Models.UserModel;
 
 namespace QueueMessageSender.Logic
 {
@@ -9,7 +12,7 @@ namespace QueueMessageSender.Logic
     /// </summary>
     public class TokenManager : ITokenManager
     {
-        private static DataContext db;
+        private readonly DataContext db;
 
         public TokenManager(DataContext context)
         {

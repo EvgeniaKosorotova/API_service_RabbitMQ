@@ -2,8 +2,8 @@
 
 namespace QueueMessageSender.Models
 {
-    public class UsersModel
+    public class UsersModel<T>
     {
-        public List<UserModel> Users { get; set; }
+        public List<T> Result { get; set; }
     }
 }
