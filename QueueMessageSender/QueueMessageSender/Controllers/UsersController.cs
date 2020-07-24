@@ -37,7 +37,7 @@ namespace QueueMessageSender.Controllers
 
             if (user == null)
             {
-                UserModel userNew = await _userManager.CreateAsync(registData.Username, registData.Password, registData.Role);
+                UserModel userNew = await _userManager.CreateAsync(registData.Username, registData.Password, registData.RoleId);
 
                 return Created(string.Empty, userNew);
             }
@@ -85,9 +85,9 @@ namespace QueueMessageSender.Controllers
             var users = await _userManager.GetAllAsync();
 
             return Ok(
-                new UsersModel
+                new ListModel<UserModel>
                 {
-                    Users = users
+                    Result = users
                 });
         }
 

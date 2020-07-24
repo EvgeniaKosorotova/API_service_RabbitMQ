@@ -25,8 +25,8 @@ namespace QueueMessageSender.Controllers
         {
             var roles = await _roleManager.GetAllAsync();
 
-            return Ok(new RolesResultModel { 
-                Roles = roles
+            return Ok(new ListModel<RoleModel> { 
+                Result = roles
             });
         }
     }

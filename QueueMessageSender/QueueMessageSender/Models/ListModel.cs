@@ -2,8 +2,8 @@
 
 namespace QueueMessageSender.Models
 {
-    public class RolesResultModel
+    public class ListModel<T>
     {
-        public List<RoleModel> Roles { get; set; }
+        public List<T> Result { get; set; }
     }
 }

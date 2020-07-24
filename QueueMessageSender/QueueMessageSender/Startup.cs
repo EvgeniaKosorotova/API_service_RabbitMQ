@@ -10,8 +10,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
+using QueueMessageSender.Data.Models;
 using QueueMessageSender.Logic;
 using QueueMessageSender.Models;
+using System;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -42,6 +44,7 @@ namespace QueueMessageSender
                 {
                     options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
                 });
+            services.AddScoped<Initializer>();
             services.AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -65,20 +68,19 @@ namespace QueueMessageSender
             });
         }
 
-        public async void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            await Initializer.InitializeAsync(app);
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "QueueMessageSender V1");
                 c.RoutePrefix = string.Empty;
             });
-            if (env.IsDevelopment()) 
+            if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
-            else 
+            else
             {
                 app.UseExceptionHandler(a => a.Run(async context =>
                 {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace QueueMessageSender.Migrations
+namespace QueueMessageSender.Data.Migrations
 {
     public partial class AddRoles : Migration
     {

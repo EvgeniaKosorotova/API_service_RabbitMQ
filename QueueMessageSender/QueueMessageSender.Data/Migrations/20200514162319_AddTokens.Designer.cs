@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using QueueMessageSender.Models;
+using QueueMessageSender.Data.Models;
 
-namespace QueueMessageSender.Migrations
+namespace QueueMessageSender.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20200530103300_AddRoles")]
-    partial class AddRoles
+    [Migration("20200514162319_AddTokens")]
+    partial class AddTokens
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -20,39 +20,27 @@ namespace QueueMessageSender.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("QueueMessageSender.Models.RoleModel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("Role")
-                        .HasColumnType("nvarchar(20)")
-                        .HasMaxLength(20);
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Roles");
-                });
-
             modelBuilder.Entity("QueueMessageSender.Models.TokenModel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnName("Id")
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<string>("RefreshToken")
-                        .HasColumnType("nvarchar(25)")
-                        .HasMaxLength(25);
-
-                    b.Property<int>("UserId")
+                    b.Property<int>("IdUser")
+                        .HasColumnName("IdUser")
                         .HasColumnType("int");
+
+                    b.Property<string>("RefreshToken")
+                        .IsRequired()
+                        .HasColumnName("RefreshToken")
+                        .HasColumnType("nvarchar(250)")
+                        .HasMaxLength(250);
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("IdUser");
 
                     b.ToTable("Tokens");
                 });
@@ -61,23 +49,23 @@ namespace QueueMessageSender.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnName("Id")
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnName("Password")
                         .HasColumnType("nvarchar(50)")
                         .HasMaxLength(50);
 
-                    b.Property<int>("RoleId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Username")
-                        .HasColumnType("nvarchar(20)")
-                        .HasMaxLength(20);
+                        .IsRequired()
+                        .HasColumnName("Username")
+                        .HasColumnType("nvarchar(50)")
+                        .HasMaxLength(50);
 
                     b.HasKey("Id");
-
-                    b.HasIndex("RoleId");
 
                     b.ToTable("Users");
                 });
@@ -85,17 +73,9 @@ namespace QueueMessageSender.Migrations
             modelBuilder.Entity("QueueMessageSender.Models.TokenModel", b =>
                 {
                     b.HasOne("QueueMessageSender.Models.UserModel", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("QueueMessageSender.Models.UserModel", b =>
-                {
-                    b.HasOne("QueueMessageSender.Models.RoleModel", "Role")
-                        .WithMany()
-                        .HasForeignKey("RoleId")
+                        .WithMany("Tokens")
+                        .HasForeignKey("IdUser")
+                        .HasConstraintName("FK_Tokens_Users")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

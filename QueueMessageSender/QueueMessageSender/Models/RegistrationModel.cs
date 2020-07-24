@@ -15,6 +15,6 @@ namespace QueueMessageSender.Models
         public string Password { get; set; }
 
         [Required]
-        public string Role { get; set; }
+        public int RoleId { get; set; }
     }
 }

@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using QueueMessageSender.Data.Models;
 using QueueMessageSender.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using UserModel = QueueMessageSender.Models.UserModel;
 
 namespace QueueMessageSender.Logic
 {
@@ -10,7 +12,7 @@ namespace QueueMessageSender.Logic
     /// </summary>
     public class UserManager : IUserManager
     {
-        private static DataContext db;
+        private readonly DataContext db;
         private readonly HashGenerator _hashGenerator;
         private readonly IRoleManager _roleManager;
 
@@ -21,30 +23,28 @@ namespace QueueMessageSender.Logic
             _roleManager = roleManager;
         }
 
-        public async Task<UserModel> CreateAsync(string username, string password, string role)
+        public async Task<UserModel> CreateAsync(string username, string password, int roleId)
         {
-            RoleModel roleObj = await _roleManager.GetAsync(role);
-
-            if (roleObj == null)
-            {
-                roleObj = await _roleManager.AddAsync(role);
-            }
-
-            var user = await db.Users.AddAsync(new UserModel
+            var user = await db.Users.AddAsync(new UserObj
             {
                 Username = username,
                 Password = _hashGenerator.GetHash(password),
-                RoleId = roleObj.Id
+                RoleId = roleId
             });
 
             await db.SaveChangesAsync();
 
-            return user.Entity;
+            return new UserModel {
+                Id = user.Entity.Id,
+                Username = user.Entity.Username,
+                Password = user.Entity.Password,
+                RoleId = user.Entity.RoleId
+            };
         }
 
         public async Task DeleteAsync(int id)
         {
-            UserModel user = await db.Users.FirstOrDefaultAsync(u => u.Id.Equals(id));
+            UserObj user = await db.Users.FirstOrDefaultAsync(u => u.Id.Equals(id));
 
             if (user != null)
             {
@@ -56,31 +56,68 @@ namespace QueueMessageSender.Logic
 
         public async Task<UserModel> GetByIdAsync(int? id = null)
         {
-            return await db.Users.FirstOrDefaultAsync(u => u.Id.Equals(id));
+            var user = await db.Users.FirstOrDefaultAsync(u => u.Id.Equals(id));
+
+            return new UserModel { 
+                Id = user.Id,
+                Username = user.Username,
+                Password = user.Password,
+                RoleId = user.RoleId
+            };
         }
 
         public async Task<UserModel> GetByCredentialsAsync(string username = null, string password = null)
         {
-            return await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username) && u.Password.Equals(_hashGenerator.GetHash(password)));
+            var user = await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username) && u.Password.Equals(_hashGenerator.GetHash(password)));
+
+            return new UserModel
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Password = user.Password,
+                RoleId = user.RoleId
+            };
         }
 
         public async Task<UserModel> GetByUsernameAsync(string username = null)
         {
-            return await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username));
+            var user = await db.Users.FirstOrDefaultAsync(u => u.Username.Equals(username));
+
+            return new UserModel
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Password = user.Password,
+                RoleId = user.RoleId
+            };
         }
 
         public async Task<List<UserModel>> GetAllAsync()
         {
-            return await db.Users.ToListAsync();
+            var users = new List<UserModel>();
+            var usersObj = await db.Users.ToListAsync();
+
+            foreach (UserObj user in usersObj)
+            {
+                users.Add(new UserModel
+                {
+                    Id = user.Id,
+                    Username = user.Username,
+                    Password = user.Password,
+                    RoleId = user.RoleId
+                });
+            }
+            return users;
         }
 
         public async Task UpdateAsync(UserModel userOld, UserModel user)
         {
-            userOld.Username = user.Username;
-            userOld.RoleId = user.RoleId;
-            userOld.Password = user.Password;
-
-            db.Users.Update(userOld);
+            db.Users.Update(new UserObj {
+                Id = userOld.Id,
+                Username = user.Username,
+                RoleId = user.RoleId,
+                Password = user.Password,
+            });
             await db.SaveChangesAsync();
         }
     }

@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
-namespace QueueMessageSender.Models
+namespace QueueMessageSender.Data.Models
 {
     public partial class DataContext : DbContext
     {
@@ -12,9 +12,9 @@ namespace QueueMessageSender.Models
             _configuration = configuration;
         }
 
-        public DbSet<TokenModel> Tokens { get; set; }
-        public DbSet<UserModel> Users { get; set; }
-        public DbSet<RoleModel> Roles { get; set; }
+        public DbSet<TokenObj> Tokens { get; set; }
+        public DbSet<UserObj> Users { get; set; }
+        public DbSet<RoleObj> Roles { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlServer(_configuration.GetConnectionString("DefaultConnection"));
