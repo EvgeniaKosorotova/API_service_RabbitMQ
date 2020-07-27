@@ -2,14 +2,14 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace QueueMessageSender.Models
+namespace QueueMessageSender.Data.Models
 {
     [Table("Users")]
-    public class UserModel
+    public class UserObj
     {
-        public UserModel()
+        public UserObj()
         {
-            this.Tokens = new HashSet<TokenModel>();
+            this.Tokens = new HashSet<TokenObj>();
         }
         [Key]
         public int Id { get; set; }
@@ -19,7 +19,7 @@ namespace QueueMessageSender.Models
         public string Password { get; set; }
         [ForeignKey("RoleId")]
         public int RoleId { get; set; }
-        public virtual RoleModel Role { get; set; }
-        public virtual ICollection<TokenModel> Tokens { get; set; }
+        public virtual RoleObj Role { get; set; }
+        public virtual ICollection<TokenObj> Tokens { get; set; }
     }
 }

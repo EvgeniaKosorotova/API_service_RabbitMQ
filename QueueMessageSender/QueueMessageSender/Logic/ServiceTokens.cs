@@ -30,7 +30,8 @@ namespace QueueMessageSender.Logic
             {
                 AccessToken = accessToken,
                 LifeTime = _configuration.GetValue<TimeSpan>("Settings:JWT:AccessToken:Expiry"),
-                RefreshToken = refreshToken
+                RefreshToken = refreshToken,
+                RoleId = user.RoleId
             };
         }
     }

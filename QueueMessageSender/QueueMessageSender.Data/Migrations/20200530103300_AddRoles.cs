@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace QueueMessageSender.Migrations
+namespace QueueMessageSender.Data.Migrations
 {
     public partial class AddRoles : Migration
     {
@@ -21,6 +21,7 @@ namespace QueueMessageSender.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Username",
                 table: "Users",
+                maxLength: 20,
                 nullable: true,
                 oldClrType: typeof(string),
                 oldType: "nvarchar(50)",
@@ -29,6 +30,7 @@ namespace QueueMessageSender.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Password",
                 table: "Users",
+                maxLength: 50,
                 nullable: true,
                 oldClrType: typeof(string),
                 oldType: "nvarchar(50)",
@@ -43,6 +45,7 @@ namespace QueueMessageSender.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "RefreshToken",
                 table: "Tokens",
+                maxLength: 25,
                 nullable: true,
                 oldClrType: typeof(string),
                 oldType: "nvarchar(250)",
@@ -55,16 +58,16 @@ namespace QueueMessageSender.Migrations
                 defaultValue: 0);
 
             migrationBuilder.CreateTable(
-                name: "RoleModel",
+                name: "Roles",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Role = table.Column<string>(nullable: true)
+                    Role = table.Column<string>(maxLength: 20, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RoleModel", x => x.Id);
+                    table.PrimaryKey("PK_Roles", x => x.Id);
                 });
 
             migrationBuilder.CreateIndex(
@@ -86,10 +89,10 @@ namespace QueueMessageSender.Migrations
                 onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_Users_RoleModel_RoleId",
+                name: "FK_Users_Roles_RoleId",
                 table: "Users",
                 column: "RoleId",
-                principalTable: "RoleModel",
+                principalTable: "Roles",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
         }
@@ -101,11 +104,11 @@ namespace QueueMessageSender.Migrations
                 table: "Tokens");
 
             migrationBuilder.DropForeignKey(
-                name: "FK_Users_RoleModel_RoleId",
+                name: "FK_Users_Roles_RoleId",
                 table: "Users");
 
             migrationBuilder.DropTable(
-                name: "RoleModel");
+                name: "Roles");
 
             migrationBuilder.DropIndex(
                 name: "IX_Users_RoleId",
@@ -130,6 +133,7 @@ namespace QueueMessageSender.Migrations
                 maxLength: 50,
                 nullable: false,
                 oldClrType: typeof(string),
+                oldMaxLength: 20,
                 oldNullable: true);
 
             migrationBuilder.AlterColumn<string>(
@@ -139,6 +143,7 @@ namespace QueueMessageSender.Migrations
                 maxLength: 50,
                 nullable: false,
                 oldClrType: typeof(string),
+                oldMaxLength: 30,
                 oldNullable: true);
 
             migrationBuilder.AlterColumn<string>(
@@ -148,6 +153,7 @@ namespace QueueMessageSender.Migrations
                 maxLength: 250,
                 nullable: false,
                 oldClrType: typeof(string),
+                oldMaxLength: 25,
                 oldNullable: true);
 
             migrationBuilder.AddColumn<int>(

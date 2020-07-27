@@ -1,10 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace QueueMessageSender.Models
+namespace QueueMessageSender.Data.Models
 {
     [Table("Tokens")]
-    public class TokenModel
+    public class TokenObj
     {
         [Key]
         public int Id { get; set; }
@@ -12,6 +12,6 @@ namespace QueueMessageSender.Models
         public string RefreshToken { get; set; }
         [ForeignKey("UserId")]
         public int UserId { get; set; }
-        public virtual UserModel User { get; set; }
+        public virtual UserObj User { get; set; }
     }
 }

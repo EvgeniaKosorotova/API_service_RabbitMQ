@@ -10,9 +10,12 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
+using QueueMessageSender.Data.Models;
 using QueueMessageSender.Logic;
 using QueueMessageSender.Models;
+using System;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace QueueMessageSender
 {
@@ -35,11 +38,13 @@ namespace QueueMessageSender
             services.AddSingleton<HashGenerator>();
             services.AddScoped<ServiceTokens>();
             services.AddScoped<ITokenManager, TokenManager>();
+            services.AddScoped<IRoleManager, RoleManager>();
             services.AddScoped<IUserManager, UserManager>();
             services.AddDbContext<DataContext>(options =>
                 {
                     options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
                 });
+            services.AddScoped<Initializer>();
             services.AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -65,18 +70,17 @@ namespace QueueMessageSender
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            UpdateDatabase(app);
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "QueueMessageSender V1");
                 c.RoutePrefix = string.Empty;
             });
-            if (env.IsDevelopment()) 
+            if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
-            else 
+            else
             {
                 app.UseExceptionHandler(a => a.Run(async context =>
                 {
@@ -97,19 +101,6 @@ namespace QueueMessageSender
             {
                 endpoints.MapControllers();
             });
-        }
-
-        private static void UpdateDatabase(IApplicationBuilder app)
-        {
-            using (var serviceScope = app.ApplicationServices
-                .GetRequiredService<IServiceScopeFactory>()
-                .CreateScope())
-            {
-                using (var context = serviceScope.ServiceProvider.GetService<DataContext>())
-                {
-                    context.Database.Migrate();
-                }
-            }
         }
     }
 }

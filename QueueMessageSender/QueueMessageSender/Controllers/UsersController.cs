@@ -23,7 +23,7 @@ namespace QueueMessageSender.Controllers
         /// A method of registering and saving new credentials in a database.
         /// </summary>
         [HttpPost]
-        public async Task<IActionResult> RegisterAsync(AuthenticationModel authData)
+        public async Task<IActionResult> RegisterAsync(RegistrationModel registData)
         {
             if (!ModelState.IsValid)
             {
@@ -33,11 +33,11 @@ namespace QueueMessageSender.Controllers
                 });
             }
 
-            UserModel user = await _userManager.GetByUsernameAsync(username: authData.Username);
+            UserModel user = await _userManager.GetByUsernameAsync(username: registData.Username);
 
             if (user == null)
             {
-                UserModel userNew = await _userManager.CreateAsync(authData.Username, authData.Password);
+                UserModel userNew = await _userManager.CreateAsync(registData.Username, registData.Password, registData.RoleId);
 
                 return Created(string.Empty, userNew);
             }
@@ -70,18 +70,43 @@ namespace QueueMessageSender.Controllers
                 await _userManager.DeleteAsync(id);
                 await _tokenManager.DeleteTokensAsync(userId: id);
 
-                return Ok(
-                    new MessageModel
-                    {
-                        Message = "Credentials have been deleted."
-                    });
+                return Ok();
             }
 
-            return NotFound(
-                new ErrorModel
+            return StatusCode(405);
+        }
+
+        /// <summary>
+        /// A method of getting list users from the database.
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetAsync()
+        {
+            var users = await _userManager.GetAllAsync();
+
+            return Ok(
+                new ListModel<UserModel>
                 {
-                    Error = "No credentials were found or deleted."
+                    Result = users
                 });
+        }
+
+        /// <summary>
+        /// Method of updating user.
+        /// </summary>
+        [HttpPut]
+        public async Task<IActionResult> UpdateAsync(UserModel user)
+        {
+            UserModel userObj = await _userManager.GetByIdAsync(id: user.Id);
+
+            if (userObj != null)
+            {
+                await _userManager.UpdateAsync(userObj, user);
+
+                return Ok();
+            }
+
+            return BadRequest();
         }
     }
 }

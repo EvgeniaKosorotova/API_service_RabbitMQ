@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using QueueMessageSender.Logic;
 using QueueMessageSender.Models;
 using System.Threading.Tasks;

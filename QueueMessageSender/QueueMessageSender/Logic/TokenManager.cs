@@ -1,6 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using QueueMessageSender.Data.Models;
 using QueueMessageSender.Models;
 using System.Threading.Tasks;
+using TokenModel = QueueMessageSender.Models.TokenModel;
+using UserModel = QueueMessageSender.Models.UserModel;
 
 namespace QueueMessageSender.Logic
 {
@@ -9,7 +12,7 @@ namespace QueueMessageSender.Logic
     /// </summary>
     public class TokenManager : ITokenManager
     {
-        private static DataContext db;
+        private readonly DataContext db;
 
         public TokenManager(DataContext context)
         {
@@ -18,27 +21,36 @@ namespace QueueMessageSender.Logic
 
         public async Task<TokenModel> AddTokenAsync(UserModel user, string refreshToken) 
         {
-            var tokens = await db.Tokens.AddAsync(new TokenModel
+            var tokens = await db.Tokens.AddAsync(new TokenObj
             {
                 UserId = user.Id,
-                User = user,
                 RefreshToken = refreshToken
             });
             await db.SaveChangesAsync();
 
-            return tokens.Entity;
+            return new TokenModel { 
+                Id = tokens.Entity.Id,
+                UserId = tokens.Entity.UserId,
+                RefreshToken = tokens.Entity.RefreshToken,
+            };
         }
 
         public async Task<UserModel> GetUser(string token = "")
         {
             var tokenObj = await db.Tokens.FirstOrDefaultAsync(t => t.RefreshToken.Equals(token));
 
-            return tokenObj.User;
+            return tokenObj == null ? null : 
+                new UserModel {
+                    Id = tokenObj.User.Id,
+                    Username = tokenObj.User.Username,
+                    Password = tokenObj.User.Password,
+                    RoleId = tokenObj.User.RoleId
+                };
         }
 
         public async Task DeleteAsync(string token)
         {
-            TokenModel tokenObj = await db.Tokens.FirstOrDefaultAsync(t => t.RefreshToken.Equals(token));
+            TokenObj tokenObj = await db.Tokens.FirstOrDefaultAsync(t => t.RefreshToken.Equals(token));
 
             if (tokenObj != null)
             {

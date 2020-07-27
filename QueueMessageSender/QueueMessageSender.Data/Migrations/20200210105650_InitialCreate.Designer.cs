@@ -4,10 +4,9 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using QueueMessageSender.Logic;
-using QueueMessageSender.Models;
+using QueueMessageSender.Data.Models;
 
-namespace QueueMessageSender.Migrations
+namespace QueueMessageSender.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
     [Migration("20200210105650_InitialCreate")]
